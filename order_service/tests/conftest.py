@@ -34,11 +34,20 @@ def apply_migrations():
 
 @pytest.fixture(scope="function")
 def session_factory(apply_migrations):
-    return sessionmaker(
-        bind=apply_migrations,
+    connection = apply_migrations.connect()
+    transaction = connection.begin()
+
+    Session = sessionmaker(
+        bind=connection,
         autoflush=False,
         autocommit=False,
+        expire_on_commit=False,  
     )
+
+    yield Session
+
+    transaction.rollback()
+    connection.close()
 
 
 @pytest.fixture
