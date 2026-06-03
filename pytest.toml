@@ -1,0 +1,10 @@
+[pytest]
+minversion = "9.0.3"
+addopts = [
+    "-v",
+    "-s",
+    "-ra"
+]
+testpaths = [
+    "order_service/tests"
+]
