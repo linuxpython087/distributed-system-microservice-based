@@ -130,7 +130,9 @@ def test_version_increments_when_order_confirmed():
     order = Order(user_id=UserId.new())
 
     assert order.version == 0
+    product_id = ProductId.new()
+    order.add_item(product_id=product_id, qty=2, unit_price=Money(10, "USD"))
 
     order.confirm()
 
-    assert order.version == 1
+    assert order.version == 2

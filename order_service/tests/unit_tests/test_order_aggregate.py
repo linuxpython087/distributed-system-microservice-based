@@ -2,7 +2,7 @@ from order_service.src.domain.aggregates.order import Order
 from order_service.src.domain.value_objects.money import Money
 from order_service.src.domain.order_status import OrderStatus
 import pytest
-
+from order_service.src.domain.exceptions import InvalidOrderState
 
 from order_service.src.domain.value_objects.object_ids import (
     ProductId,
@@ -70,20 +70,20 @@ def test_get_total():
     assert total.currency == "USD"
 
 
-# def test_cannot_modify_cancelled_order():
-#     order = Order(user_id=1)
+def test_cannot_modify_cancelled_order():
+    order = Order(user_id=1)
 
-#     order.cancel()
+    order.cancel()
 
-#     with pytest.raises(InvalidOrderState):
-#         order.add_item(product_id=1, qty=2, unit_price=Money(10, "USD"))
+    with pytest.raises(InvalidOrderState):
+        order.add_item(product_id=1, qty=2, unit_price=Money(10, "USD"))
 
 
-# def test_get_total():
-#     order = Order(user_id=1)
-#     order.add_item(product_id=1, qty=2, unit_price=Money(29, "USD"))
-#     total = order.total()
-#     assert total.amount == 58
+def test_cannot_confirm_empty_order():
+    order = Order(user_id=UserId.new())
+
+    with pytest.raises(InvalidOrderState):
+        order.confirm()
 
 
 def test_currency_mismatch_on_add_item():

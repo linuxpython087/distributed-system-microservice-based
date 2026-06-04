@@ -6,6 +6,7 @@ from order_service.src.domain.value_objects.money import Money
 from order_service.src.domain.aggregates.order import Order
 from order_service.src.domain.entities.order_item import OrderItem
 from sqlalchemy.orm.collections import attribute_mapped_collection
+from sqlalchemy import event
 
 # -------------------------
 # DOMAIN IMPORTS (for mapping layer)
@@ -50,3 +51,7 @@ def start_mappers():
         version_id_col=orders_table.c.version,
         version_id_generator=False,
     )
+
+    @event.listens_for(Order, "load")
+    def receive_load(order, context):
+        order.events = []

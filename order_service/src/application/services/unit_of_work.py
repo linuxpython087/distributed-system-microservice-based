@@ -1,11 +1,9 @@
-
 from abc import abstractmethod, ABC
 from order_service.src.domain.repositories import OrderRepository
 from order_service.src.infrastructure.repositories import SqlAlchemyOrderRepository
-from order_service.src.infrastructure.database import SessionLocal
 
 from order_service.src.infrastructure.fake_repository import FakeOrderRepository
-from sqlalchemy import event
+
 
 class AbstractOrderUnitOfWork(ABC):
 
@@ -24,15 +22,16 @@ class AbstractOrderUnitOfWork(ABC):
     @abstractmethod
     def rollback(self):
         raise NotImplementedError
-    
+
+    def collect_new_events(self):
+
+        for order in self.orders.seen:
+
+            while order.events:
+
+                yield order.events.pop(0)
 
     # def collect_new_events(self):
-
-    #     for product in self.products.seen:
-
-    #         while product.events:
-
-    #             yield product.events.pop(0)
 
 
 class FakeUnitOfWork(AbstractOrderUnitOfWork):
@@ -57,6 +56,7 @@ class FakeUnitOfWork(AbstractOrderUnitOfWork):
     def rollback(self):
         self.rolled_back = True
 
+
 class SqlAlchemyOrderUnitOfWork(AbstractOrderUnitOfWork):
 
     def __init__(self, session_factory):
@@ -65,7 +65,7 @@ class SqlAlchemyOrderUnitOfWork(AbstractOrderUnitOfWork):
     def __enter__(self):
         self.session = self.session_factory()
         self.orders = SqlAlchemyOrderRepository(self.session)
-        return self   
+        return self
 
     def __exit__(self, exc_type, exc, tb):
         try:
@@ -81,4 +81,3 @@ class SqlAlchemyOrderUnitOfWork(AbstractOrderUnitOfWork):
 
     def rollback(self):
         self.session.rollback()
-

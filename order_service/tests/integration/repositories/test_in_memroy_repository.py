@@ -42,6 +42,7 @@ def test_confirm_order():
     order = Order(user_id=UserId.new())
 
     repo.add(order)
+    order.add_item(product_id=ProductId.new(), qty=2, unit_price=Money(29, "USD"))
 
     order.confirm()
 

@@ -37,7 +37,10 @@ def test_confirm_order_is_persisted(session):
 
     session.commit()
 
-    order.confirm()
+    loaded = repo.get(order.id)
+    loaded.add_item(product_id=ProductId.new(), qty=2, unit_price=Money(29, "USD"))
+
+    loaded.confirm()
 
     session.commit()
 

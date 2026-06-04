@@ -66,6 +66,8 @@ class Order:
     def confirm(self):
         self._ensure_modifiable()
 
+        self._ensure_has_items()
+
         self.status = OrderStatus.CONFIRMED
         self.version += 1
         self._record_event(OrderConfirmedEvent(self.id, self.user_id))
@@ -119,6 +121,10 @@ class Order:
             raise InvalidOrderState(
                 f"Operation not allowed in status {self.status.value}"
             )
+
+    def _ensure_has_items(self):
+        if not self.items:
+            raise InvalidOrderState("Cannot confirm empty order")
 
     # -------------------------
     # invariant check

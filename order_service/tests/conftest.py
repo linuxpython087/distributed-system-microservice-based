@@ -41,7 +41,7 @@ def session_factory(apply_migrations):
         bind=connection,
         autoflush=False,
         autocommit=False,
-        expire_on_commit=False,  
+        expire_on_commit=False,
     )
 
     yield Session
