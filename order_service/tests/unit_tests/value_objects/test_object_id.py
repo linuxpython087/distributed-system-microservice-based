@@ -24,6 +24,8 @@ def test_user_id_creation():
     assert isinstance(uid.value, uuid.UUID)
 
 
+
+
 @pytest.mark.parametrize("cls", [UserId, ProductId, OrderId, OrderItemId])
 def test_from_string(cls):
     raw = "12345678-1234-5678-1234-567812345678"
@@ -33,16 +35,16 @@ def test_from_string(cls):
     assert obj.value == uuid.UUID(raw)
 
 
+
 def test_str_representation():
     uid = UserId.from_string("12345678-1234-5678-1234-567812345678")
 
     assert str(uid) == "12345678-1234-5678-1234-567812345678"
 
-
 def test_id_types_are_not_interchangeable():
     user = UserId.new()
-    print(user.value)
-    print(str(user))
+    # print(user.value)
+    # print(str(user))
     product = ProductId.new()
 
     assert type(user) is not type(product)
