@@ -10,9 +10,10 @@ class BaseId:
         return str(self.value)
 
     @classmethod
-    def from_string(cls, value: str):
-        return cls(uuid.UUID(value))
-
+    def from_string(cls, value):
+        if isinstance(value, cls):
+            return value
+        return cls(uuid.UUID(str(value)))
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.value == other.value
 

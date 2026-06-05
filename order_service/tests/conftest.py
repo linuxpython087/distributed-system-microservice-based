@@ -70,7 +70,7 @@ def session(apply_migrations):
     connection.close()
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def mappers():
     start_mappers()
     yield
