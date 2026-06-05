@@ -1,94 +1,97 @@
+from typing import Protocol
+
 from order_service.src.application.services.unit_of_work import (
     AbstractOrderUnitOfWork,
 )
 from order_service.src.domain.aggregates.order import Order
-
-
 from order_service.src.application.services import commands
-from order_service.src.domain.value_objects.object_ids import OrderId
+
+# =========================
+# COMMAND HANDLER CONTRACT
+# =========================
 
 
-def create_order(
-    cmd: commands.CreateOrderCommand, uow: AbstractOrderUnitOfWork
-) -> OrderId:
-
-    with uow:
-
-        order = Order(user_id=cmd.user_id)
-
-        uow.orders.add(order)
-
-        uow.commit()
-
-        return order.id
+class CommandHandler(Protocol):
+    def handle(self, command, uow: AbstractOrderUnitOfWork):
+        pass
 
 
-def add_item_to_order(cmd: commands.AddItemCommand, uow: AbstractOrderUnitOfWork):
-
-    with uow:
-
-        order = uow.orders.get(cmd.order_id)
-
-        if order is None:
-            raise
-
-        order.add_item(cmd.product_id, cmd.qty, cmd.unit_price)
-
-        uow.commit()
+# =========================
+# HANDLERS
+# =========================
 
 
-def remove_item_from_order(
-    cmd: commands.RemoveItemCommand, uow: AbstractOrderUnitOfWork
-):
-    with uow:
-
-        order = uow.orders.get(cmd.order_id)
-
-        if order is None:
-            raise Exception("Order not found")
-
-        order.remove_item(cmd.item_id)
-
-        uow.commit()
+class CreateOrderHandler:
+    def handle(self, cmd: commands.CreateOrderCommand, uow: AbstractOrderUnitOfWork):
+        with uow:
+            order = Order(user_id=cmd.user_id)
+            uow.orders.add(order)
+            uow.commit()
+            return order.id
 
 
-def change_item_quantity(
-    cmd: commands.ChangeItemQuantityCommand, uow: AbstractOrderUnitOfWork
-):
-    with uow:
+class AddItemToOrderHandler:
+    def handle(self, cmd: commands.AddItemCommand, uow: AbstractOrderUnitOfWork):
+        with uow:
+            order = uow.orders.get(cmd.order_id)
 
-        order = uow.orders.get(cmd.order_id)
+            if order is None:
+                raise Exception("Order not found")
 
-        if order is None:
-            raise Exception("Order not found")
+            order.add_item(cmd.product_id, cmd.qty, cmd.unit_price)
 
-        order.change_item_quantity(cmd.item_id, cmd.qty)
-
-        uow.commit()
+            uow.commit()
 
 
-def confirm_order(cmd: commands.ConfirmOrderCommand, uow: AbstractOrderUnitOfWork):
+class RemoveItemFromOrderHandler:
+    def handle(self, cmd: commands.RemoveItemCommand, uow: AbstractOrderUnitOfWork):
+        with uow:
+            order = uow.orders.get(cmd.order_id)
 
-    with uow:
+            if order is None:
+                raise Exception("Order not found")
 
-        order = uow.orders.get(cmd.order_id)
+            order.remove_item(cmd.item_id)
 
-        if order is None:
-            raise
-
-        order.confirm()
-
-        uow.commit()
+            uow.commit()
 
 
-def cancel_order(cmd: commands.CancelOrderCommand, uow: AbstractOrderUnitOfWork):
-    with uow:
+class ChangeItemQuantityHandler:
+    def handle(
+        self, cmd: commands.ChangeItemQuantityCommand, uow: AbstractOrderUnitOfWork
+    ):
+        with uow:
+            order = uow.orders.get(cmd.order_id)
 
-        order = uow.orders.get(cmd.order_id)
+            if order is None:
+                raise Exception("Order not found")
 
-        if order is None:
-            raise Exception("Order not found")
+            order.change_item_quantity(cmd.item_id, cmd.qty)
 
-        order.cancel()
+            uow.commit()
 
-        uow.commit()
+
+class ConfirmOrderHandler:
+    def handle(self, cmd: commands.ConfirmOrderCommand, uow: AbstractOrderUnitOfWork):
+        with uow:
+            order = uow.orders.get(cmd.order_id)
+
+            if order is None:
+                raise Exception("Order not found")
+
+            order.confirm()
+
+            uow.commit()
+
+
+class CancelOrderHandler:
+    def handle(self, cmd: commands.CancelOrderCommand, uow: AbstractOrderUnitOfWork):
+        with uow:
+            order = uow.orders.get(cmd.order_id)
+
+            if order is None:
+                raise Exception("Order not found")
+
+            order.cancel()
+
+            uow.commit()
