@@ -84,7 +84,12 @@ class OrderReadRepository:
             order_id=row["order_id"],
             user_id=row["user_id"],
             status=row["status"],
+            version=row.get("version", None),
+            item_count=row["item_count"],
+            created_at=row.get("created_at", None),
+            last_update=row.get("updated_at", None),
             total_amount=row["total_amount"],
             currency=row["currency"],
-            items=items
+            items=items,
+            
         )

@@ -33,6 +33,7 @@ class OrderProjector:
             "order_id": order.id,
             "user_id": order.user_id,
             "status": order.status.value,
+            "item_count":len(order.items),
             "total_amount": total.amount,
             "currency": total.currency,
             "items": items,

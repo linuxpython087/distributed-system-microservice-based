@@ -153,8 +153,9 @@ order_read_model_table = Table(
     Column("user_id", UserIdType(), nullable=False),
 
     Column("status", String, nullable=False),
+    Column("item_count", Integer, nullable=False, default=0),
 
-    Column("total_amount", Integer, nullable=False, default=0),
+    Column("total_amount", Integer, nullable=False, default=0, server_default=")"),
     Column("currency", String, nullable=False, default="USD"),
 
     # snapshot complet des items
