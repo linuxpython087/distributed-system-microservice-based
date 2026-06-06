@@ -140,3 +140,28 @@ idempotency_table = Table(
     # Link to business entity
     Column("order_id", UUID(as_uuid=True), ForeignKey("orders.id"), nullable=True),
 )
+
+
+
+
+
+order_read_model_table = Table(
+    "order_read_model",
+    metadata,
+
+    Column("order_id", OrderIdType(), primary_key=True),
+    Column("user_id", UserIdType(), nullable=False),
+
+    Column("status", String, nullable=False),
+
+    Column("total_amount", Integer, nullable=False, default=0),
+    Column("currency", String, nullable=False, default="USD"),
+
+    # snapshot complet des items
+    Column("items", JSONB, nullable=False),
+
+    Column("version", Integer, nullable=False, default=0),
+
+    Column("created_at", DateTime(timezone=True), server_default=func.now()),
+    Column("updated_at", DateTime(timezone=True), onupdate=func.now()),
+)

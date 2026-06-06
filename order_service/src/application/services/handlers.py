@@ -9,7 +9,9 @@ from order_service.src.application.services import commands
 # =========================
 # COMMAND HANDLER CONTRACT
 # =========================
+from order_service.src.domain.exceptions import OrderNotFound
 
+from order_service.src.read_model.projection import OrderProjector
 
 class CommandHandler(Protocol):
     def handle(self, command, uow: AbstractOrderUnitOfWork):
@@ -36,11 +38,15 @@ class AddItemToOrderHandler:
             order = uow.orders.get(cmd.order_id)
 
             if order is None:
-                raise Exception("Order not found")
+                raise OrderNotFound("Order not found")
 
-            order.add_item(cmd.product_id, cmd.qty, cmd.unit_price)
+            item_id = order.add_item(cmd.product_id, cmd.qty, cmd.unit_price)
 
             uow.commit()
+            # 🔥 PROJECTION READ MODEL
+            projector = OrderProjector(uow.session)
+            projector.project(order)
+            return item_id
 
 
 class RemoveItemFromOrderHandler:
@@ -49,11 +55,13 @@ class RemoveItemFromOrderHandler:
             order = uow.orders.get(cmd.order_id)
 
             if order is None:
-                raise Exception("Order not found")
+                raise OrderNotFound("Order not found")
 
             order.remove_item(cmd.item_id)
 
             uow.commit()
+            projector = OrderProjector(uow.session)
+            projector.project(order)
 
 
 class ChangeItemQuantityHandler:
@@ -64,11 +72,14 @@ class ChangeItemQuantityHandler:
             order = uow.orders.get(cmd.order_id)
 
             if order is None:
-                raise Exception("Order not found")
+                raise OrderNotFound("Order not found")
 
             order.change_item_quantity(cmd.item_id, cmd.qty)
 
             uow.commit()
+            projector = OrderProjector(uow.session)
+            projector.project(order)
+
 
 
 class ConfirmOrderHandler:
@@ -77,11 +88,14 @@ class ConfirmOrderHandler:
             order = uow.orders.get(cmd.order_id)
 
             if order is None:
-                raise Exception("Order not found")
+                raise OrderNotFound("Order not found")
 
             order.confirm()
 
             uow.commit()
+            projector = OrderProjector(uow.session)
+            projector.project(order)
+
 
 
 class CancelOrderHandler:
@@ -90,8 +104,11 @@ class CancelOrderHandler:
             order = uow.orders.get(cmd.order_id)
 
             if order is None:
-                raise Exception("Order not found")
+                raise OrderNotFound("Order not found")
 
             order.cancel()
 
             uow.commit()
+            projector = OrderProjector(uow.session)
+            projector.project(order)
+

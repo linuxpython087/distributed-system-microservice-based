@@ -14,6 +14,7 @@ class BaseId:
         if isinstance(value, cls):
             return value
         return cls(uuid.UUID(str(value)))
+
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.value == other.value
 

@@ -1,6 +1,22 @@
-class InvalidQuantity(Exception):
+class DomainException(Exception):
     pass
 
 
-class InvalidOrderState(Exception):
+class OrderNotFound(DomainException):
+    pass
+
+
+class InvalidOrderState(DomainException):
+    pass
+
+
+class InvalidQuantity(DomainException):
+    pass
+
+
+class OrderItemNotFound(DomainException):
+    pass
+
+
+class CurrencyMismatch(DomainException):
     pass

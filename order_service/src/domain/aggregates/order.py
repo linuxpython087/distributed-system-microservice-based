@@ -12,6 +12,10 @@ from order_service.src.domain.events.order_events import (
     OrderItemRemovedEvent,
 )
 
+from order_service.src.domain.order_transitions import (
+    ALLOWED_TRANSITIONS,
+)
+
 
 class Order:
 
@@ -46,6 +50,7 @@ class Order:
         self.items[item.id] = item
         self.version += 1
         self._record_event(OrderItemAddedEvent(self.id, item.id, product_id, qty))
+        return item.id
 
     def remove_item(self, item_id: OrderItemId):
         self._ensure_modifiable()
@@ -64,25 +69,24 @@ class Order:
         self._record_event(OrderItemQuantityChangedEvent(self.id, item_id, qty))
 
     def confirm(self):
-        self._ensure_modifiable()
+        # self._ensure_modifiable()
 
         self._ensure_has_items()
+        self._change_status(OrderStatus.CONFIRMED)
 
         self.status = OrderStatus.CONFIRMED
-        self.version += 1
+        # self.version += 1
         self._record_event(OrderConfirmedEvent(self.id, self.user_id))
 
     def cancel(self):
-        if self.status in [OrderStatus.SHIPPED, OrderStatus.DELIVERED]:
-            raise InvalidOrderState("Cannot cancel after shipping")
-
         if self.status == OrderStatus.CANCELLED:
             return
 
-        self.status = OrderStatus.CANCELLED
-        self.version += 1
+        self._change_status(OrderStatus.CANCELLED)
+
         self._record_event(OrderCancelledEvent(self.id, self.user_id))
 
+        
     def total(self) -> Money:
         items = list(self.items.values())
 
@@ -132,3 +136,14 @@ class Order:
     def _ensure_not_cancelled(self):
         if self.status == OrderStatus.CANCELLED:
             raise InvalidOrderState("Order is cancelled")
+
+    def _change_status(self, new_status):
+        allowed = ALLOWED_TRANSITIONS[self.status]
+
+        if new_status not in allowed:
+            raise InvalidOrderState(
+                f"Transition {self.status.value} -> {new_status.value} not allowed"
+            )
+
+        self.status = new_status
+        self.version += 1

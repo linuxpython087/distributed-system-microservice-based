@@ -10,3 +10,7 @@ class AddItemRequest(BaseModel):
     product_id: UUID
     qty: int
     unit_price: float
+
+
+class ChangeQuantityRequest(BaseModel):
+    qty: int

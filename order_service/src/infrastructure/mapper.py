@@ -17,12 +17,13 @@ mapper_registry = registry()
 
 _mappers_started = False
 
+
 def start_mappers():
     global _mappers_started
 
     if _mappers_started:
         return
-    
+
     _mappers_started = True
 
     mapper_registry.map_imperatively(
