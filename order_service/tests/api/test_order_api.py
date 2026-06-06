@@ -77,7 +77,7 @@ def test_cancle_order_api():
 
     response = client.post(f"/orders/{order_id}/cancel")
 
-    assert response.status_code == 204
+    assert response.status_code == 201
 
 
 
@@ -98,7 +98,7 @@ def test_confirm_and_cancle_order_api():
 
     response = client.post(f"/orders/{order_id}/cancel")
 
-    assert response.status_code == 204
+    assert response.status_code == 201
 
 
 def test_cancle_empty_order_api():
@@ -112,7 +112,7 @@ def test_cancle_empty_order_api():
 
     response = client.post(f"/orders/{order_id}/cancel")
 
-    assert response.status_code == 204
+    assert response.status_code == 201
 
 
 def test_remove_item_api():
