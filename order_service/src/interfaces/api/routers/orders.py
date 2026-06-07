@@ -30,8 +30,17 @@ from order_service.src.domain.value_objects.object_ids import (
 from order_service.src.domain.value_objects.object_ids import OrderId, ProductId
 from order_service.src.domain.value_objects.money import Money
 
+from order_service.src.application.services.idempotency_service import (
+    IdempotencyService
+)
+
 router = APIRouter()
 
+
+from fastapi import Header
+
+from fastapi import Header, HTTPException
+import uuid
 
 @router.post(
     "/", response_model=CreateOrderResponse, status_code=status.HTTP_201_CREATED
@@ -39,12 +48,40 @@ router = APIRouter()
 def create_order(
     request: CreateOrderRequest,
     bus=Depends(get_bus),
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key")
 ):
-    cmd = commands.CreateOrderCommand(user_id=UserId.from_string(request.user_id))
+    # =========================================
+    # 1. AUTO-GENERATE IF MISSING
+    # =========================================
+    if not idempotency_key:
+        idempotency_key = str(uuid.uuid4())
 
-    result = bus.handle(cmd)
+    with bus.uow:
 
-    return CreateOrderResponse(order_id=result[0].value)
+        service = IdempotencyService(bus.uow)
+
+    
+
+        cmd = commands.CreateOrderCommand(user_id=UserId.from_string(request.user_id))
+
+        def run():
+            return bus.handle(cmd)
+        
+        result = service.execute(
+            key=idempotency_key,
+            user_id=cmd.user_id,
+            request_path="/orders",
+            request_params=cmd.to_dict(),
+            callback=run,
+        )
+
+
+    # result = bus.handle(cmd)
+
+        return CreateOrderResponse(
+        order_id=result["result"][0],
+        idempotency_key=idempotency_key,
+    )
 
 
 @router.post(

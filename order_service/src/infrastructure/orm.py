@@ -13,6 +13,7 @@ from order_service.src.domain.value_objects.object_ids import (
     UserId,
     ProductId,
     OrderItemId,
+    IdempotencyId
 )
 
 
@@ -42,6 +43,10 @@ class UserIdType(BaseUUIDType):
     vo_class = UserId
     cache_ok = True
 
+
+class IdempotencyIdType(BaseUUIDType):
+    vo_class = IdempotencyId
+    cache_ok = True
 
 class ProductIdType(BaseUUIDType):
     vo_class = ProductId
@@ -111,11 +116,11 @@ order_items_table = Table(
 idempotency_table = Table(
     "idempotency_keys",
     metadata,
-    Column("id", UUID(as_uuid=True), primary_key=True),
+    Column("id", IdempotencyIdType(), primary_key=True),
     # Unique request identifier
     Column("key", String, unique=True, nullable=False),
     # Who triggered request
-    Column("user_id", UUID(as_uuid=True), nullable=False),
+    Column("user_id", UserIdType(), nullable=False),
     # What operation
     Column("request_path", String, nullable=False),
     # Payload snapshot
@@ -138,7 +143,7 @@ idempotency_table = Table(
     Column("created_at", DateTime(timezone=True), server_default=func.now()),
     Column("expires_at", DateTime(timezone=True), nullable=True),
     # Link to business entity
-    Column("order_id", UUID(as_uuid=True), ForeignKey("orders.id"), nullable=True),
+    Column("order_id", OrderIdType(), ForeignKey("orders.id"), nullable=True),
 )
 
 

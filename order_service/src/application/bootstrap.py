@@ -14,8 +14,9 @@ from order_service.src.application.services.unit_of_work import (
     AbstractOrderUnitOfWork,
 )
 
-from order_service.src.infrastructure.database import SessionLocal
 
+from order_service.src.infrastructure.database import SessionLocal
+from order_service.src.infrastructure.database import get_db
 
 def bootstrap(
     start_map=True,
@@ -28,7 +29,6 @@ def bootstrap(
     if uow is None:
         uow = SqlAlchemyOrderUnitOfWork(SessionLocal)
 
-    uow = SqlAlchemyOrderUnitOfWork(SessionLocal)
 
     return MessageBus(
         uow=uow,

@@ -37,3 +37,7 @@ class OrderId(BaseId):
 
 class OrderItemId(BaseId):
     pass
+
+
+class IdempotencyId(BaseId):
+    pass

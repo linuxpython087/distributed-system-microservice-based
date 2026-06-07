@@ -4,10 +4,15 @@ from order_service.src.infrastructure.repositories import SqlAlchemyOrderReposit
 
 from order_service.src.infrastructure.fake_repository import FakeOrderRepository
 
+from order_service.src.domain.idempotency.repository import (
+    AbstractIdempotencyRepository
+)
+from order_service.src.infrastructure.idempotency.repository import IdempotencyRepository
 
 class AbstractOrderUnitOfWork(ABC):
 
     orders: OrderRepository
+    idempotency: AbstractIdempotencyRepository
 
     def __enter__(self):
         return self
@@ -65,6 +70,7 @@ class SqlAlchemyOrderUnitOfWork(AbstractOrderUnitOfWork):
     def __enter__(self):
         self.session = self.session_factory()
         self.orders = SqlAlchemyOrderRepository(self.session)
+        self.idempotency = IdempotencyRepository(self.session)
         return self
 
     def __exit__(self, exc_type, exc, tb):

@@ -9,6 +9,8 @@ from order_service.src.application.services.unit_of_work import (
 
 Message = Union[commands.Command, order_events.Event]
 
+
+
 # =========================
 # MESSAGE BUS
 # =========================

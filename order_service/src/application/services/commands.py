@@ -8,14 +8,47 @@ from order_service.src.domain.value_objects.object_ids import (
 )
 from order_service.src.domain.value_objects.money import Money
 
+from dataclasses import asdict, is_dataclass
+
 
 class Command:
-    order_id: OrderId
 
+    def _serialize(self, value):
+
+        if hasattr(value, "value"):
+            return str(value.value)
+
+        if is_dataclass(value):
+            return {
+                k: self._serialize(v)
+                for k, v in asdict(value).items()
+            }
+
+        if isinstance(value, dict):
+            return {
+                k: self._serialize(v)
+                for k, v in value.items()
+            }
+
+        if isinstance(value, list):
+            return [
+                self._serialize(v)
+                for v in value
+            ]
+
+        return value
+
+    def to_dict(self):
+
+        return {
+            key: self._serialize(value)
+            for key, value in self.__dict__.items()
+        }
 
 @dataclass(frozen=True)
 class CreateOrderCommand(Command):
     user_id: UserId
+    # idempotency_key: str
 
 
 @dataclass(frozen=True)
