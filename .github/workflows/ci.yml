@@ -1,43 +1,92 @@
-name: Order Service CI
+name: Build and Deploy Code
 
-on:
-  push:
-    branches:
-      - main
-      - master
-
-  pull_request:
+on: [push, pull_request]
 
 jobs:
-
-  test-order-service:
-
-    runs-on: ubuntu-latest
+  build:
+   
     env:
       DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
       DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
       DATABASE_USER: ${{ secrets.DATABASE_USER }}
       DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-      DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+      DATABASE_NAME: ${{ secrets.DATABASE_NAME }}    
+     
 
-    defaults:
-      run:
-        working-directory: order_service
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}  
+          POSTGRES_DB: ${{ secrets.DATABASE_NAME }}                   
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]  # Liste des versions de Python
 
     steps:
+      - name: pulling git repo
+        uses: actions/checkout@v2
 
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Install python version ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            pip-${{ runner.os }}-
+      
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            pip-${{ runner.os }}-
 
-      - name: Run tests
+  
+
+      - name: update pip
+        run: python -m pip install --upgrade pip
+
+      - name: install all dependencies
+        run: pip install -r requirements.txt
+
+      - name: install alembic
+        run: pip install alembic
+
+      - name: Wait for PostgreSQL to be ready
         run: |
-          pytest -v
+          for i in {1..10}; do
+            pg_isready -h localhost -p 5432 && break
+            sleep 2
+          done
+
+      - name: drop database
+        run: |
+          PGPASSWORD=${{ secrets.DATABASE_PASSWORD }} psql -h localhost -U ${{ secrets.DATABASE_USERNAME }} -c "DROP DATABASE IF EXISTS correction_test;"
+
+      - name: Create test database
+        run: |
+          PGPASSWORD=${{ secrets.DATABASE_PASSWORD }} psql -h localhost -U ${{ secrets.DATABASE_USERNAME }} -c "CREATE DATABASE correction_test;"
+
+      - name: Run migrations with alembic
+        run: alembic upgrade head
+
+      - name: test with pytest
+        run: |
+          pip install pytest
+          pytest
