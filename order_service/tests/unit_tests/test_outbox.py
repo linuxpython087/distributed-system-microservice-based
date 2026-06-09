@@ -29,6 +29,7 @@ def test_create_outbox_message_from_event():
     order.confirm()
 
     integration_event = OrderIntegrationEventFactory.from_order(order)
+    
 
     outbox = OutboxMessage.from_integration_event(integration_event, order.id)
  
