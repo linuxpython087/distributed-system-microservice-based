@@ -1,3 +1,4 @@
+
 name: Build and Deploy Code
 
 on: [push, pull_request]
@@ -28,9 +29,12 @@ jobs:
           --health-retries 5
 
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: order_service
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]  # Liste des versions de Python
+        python-version: ["3.12", "3.13"]  # Liste des versions de Python
 
     steps:
       - name: pulling git repo
