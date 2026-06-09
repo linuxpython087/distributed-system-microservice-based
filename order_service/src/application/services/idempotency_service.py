@@ -36,9 +36,7 @@ class IdempotencyService:
 
         if existing and existing["status"] == "processing":
 
-            raise RuntimeError(
-                f"Request with key '{key}' is already processing"
-            )
+            raise RuntimeError(f"Request with key '{key}' is already processing")
 
         # ==========================================
         # CREATE RECORD
@@ -59,13 +57,9 @@ class IdempotencyService:
             # SERIALIZE RESPONSE
             # ======================================
 
-            response_body = self._serialize_result(
-                result
-            )
+            response_body = self._serialize_result(result)
 
-            order_id = self._extract_order_id(
-                result
-            )
+            order_id = self._extract_order_id(result)
 
             self.uow.idempotency.mark_completed(
                 key=key,
@@ -105,28 +99,18 @@ class IdempotencyService:
             for item in result:
 
                 if hasattr(item, "value"):
-                    serialized.append(
-                        str(item.value)
-                    )
+                    serialized.append(str(item.value))
 
                 else:
-                    serialized.append(
-                        str(item)
-                    )
+                    serialized.append(str(item))
 
-            return {
-                "result": serialized
-            }
+            return {"result": serialized}
 
         if hasattr(result, "value"):
 
-            return {
-                "result": str(result.value)
-            }
+            return {"result": str(result.value)}
 
-        return {
-            "result": str(result)
-        }
+        return {"result": str(result)}
 
     def _extract_order_id(self, result):
 

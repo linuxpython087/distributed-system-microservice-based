@@ -16,24 +16,24 @@ class OrderProjector:
         for item in order.items.values():
             subtotal = item.subtotal()
 
-            items.append({
-                "id": str(item.id),
-                "product_id": str(item.product_id),
-                "quantity": item.quantity,
-                "unit_price": item.unit_price.amount,
-                "subtotal": subtotal.amount,
-                "currency": subtotal.currency,
-                
-            })
+            items.append(
+                {
+                    "id": str(item.id),
+                    "product_id": str(item.product_id),
+                    "quantity": item.quantity,
+                    "unit_price": item.unit_price.amount,
+                    "subtotal": subtotal.amount,
+                    "currency": subtotal.currency,
+                }
+            )
 
         total = order.total()
-        
 
         row = {
             "order_id": order.id,
             "user_id": order.user_id,
             "status": order.status.value,
-            "item_count":len(order.items),
+            "item_count": len(order.items),
             "total_amount": total.amount,
             "currency": total.currency,
             "items": items,
@@ -54,8 +54,6 @@ class OrderProjector:
                 .values(**row)
             )
         else:
-            self.session.execute(
-                order_read_model_table.insert().values(**row)
-            )
+            self.session.execute(order_read_model_table.insert().values(**row))
 
         self.session.commit()

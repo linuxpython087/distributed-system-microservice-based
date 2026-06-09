@@ -1,9 +1,10 @@
-
 from sqlalchemy import select
 from order_service.src.infrastructure.orm import order_read_model_table
 from order_service.src.read_model.dto import OrderView, OrderItemView
 
 from order_service.src.domain.value_objects.object_ids import OrderId
+
+
 class OrderReadRepository:
 
     def __init__(self, session):
@@ -12,10 +13,15 @@ class OrderReadRepository:
     def get_order(self, order_id: str) -> OrderView:
         order_id = OrderId.from_string(order_id)
 
-        row = self.session.execute(
-            select(order_read_model_table)
-            .where(order_read_model_table.c.order_id == order_id)
-        ).mappings().first()
+        row = (
+            self.session.execute(
+                select(order_read_model_table).where(
+                    order_read_model_table.c.order_id == order_id
+                )
+            )
+            .mappings()
+            .first()
+        )
 
         if not row:
             return None
@@ -27,8 +33,7 @@ class OrderReadRepository:
                 quantity=i["quantity"],
                 unit_price=i["unit_price"],
                 currency=i["currency"],
-                subtotal=i["subtotal"]
-                
+                subtotal=i["subtotal"],
             )
             for i in row["items"]
         ]
@@ -44,5 +49,4 @@ class OrderReadRepository:
             total_amount=row["total_amount"],
             currency=row["currency"],
             items=items,
-            
         )

@@ -7,6 +7,8 @@ import uuid
 
 
 from order_service.src.domain.value_objects.object_ids import IdempotencyId
+
+
 class IdempotencyRepository:
 
     def __init__(self, session: Session):
@@ -16,44 +18,38 @@ class IdempotencyRepository:
     # 1. GET BY KEY
     # =====================================================
     def get_by_key(self, key: str):
-        query = select(idempotency_table).where(
-            idempotency_table.c.key == key
-        )
-        result =  self.session.execute(query)
+        query = select(idempotency_table).where(idempotency_table.c.key == key)
+        result = self.session.execute(query)
         return result.mappings().first()
 
     # =====================================================
     # 2. SAFE GET OR CREATE (VERY IMPORTANT IN DISTRIBUTED SYSTEMS)
     # =====================================================
-    def create(
-        self,
-        key: str,
-        user_id: str,
-        request_path: str,
-        params: dict
-    ):
+    def create(self, key: str, user_id: str, request_path: str, params: dict):
         """
         Prevent race conditions when multiple requests arrive
         at the same time (retry / double submit).
         """
 
-        stmt = pg_insert(idempotency_table).values(
-             id=IdempotencyId.new(),
-            key=key,
-            user_id=user_id,
-            request_path=request_path,
-            request_params=params,
-            status="processing",
-            retry_count=0,
-            created_at=func.now()
-        ).on_conflict_do_nothing(
-            index_elements=["key"]
+        stmt = (
+            pg_insert(idempotency_table)
+            .values(
+                id=IdempotencyId.new(),
+                key=key,
+                user_id=user_id,
+                request_path=request_path,
+                request_params=params,
+                status="processing",
+                retry_count=0,
+                created_at=func.now(),
+            )
+            .on_conflict_do_nothing(index_elements=["key"])
         )
 
         self.session.execute(stmt)
         self.session.commit()
 
-        return  self.get_by_key(key)
+        return self.get_by_key(key)
 
     # =====================================================
     # 3. MARK AS PROCESSING (LOCK ACQUIRE)
@@ -65,7 +61,7 @@ class IdempotencyRepository:
             .values(
                 status="processing",
                 locked_at=func.now(),
-                retry_count=idempotency_table.c.retry_count + 1
+                retry_count=idempotency_table.c.retry_count + 1,
             )
         )
         self.session.execute(query)
@@ -75,11 +71,7 @@ class IdempotencyRepository:
     # 4. MARK COMPLETED (SUCCESS STATE)
     # =====================================================
     def mark_completed(
-        self,
-        key: str,
-        response_code: int,
-        response_body: dict,
-        order_id: str
+        self, key: str, response_code: int, response_body: dict, order_id: str
     ):
         query = (
             update(idempotency_table)
@@ -90,7 +82,6 @@ class IdempotencyRepository:
                 response_body=response_body,
                 order_id=order_id,
                 locked_at=None,
-  
             )
         )
         self.session.execute(query)
@@ -99,11 +90,7 @@ class IdempotencyRepository:
     # =====================================================
     # 5. MARK FAILED (ERROR STATE)
     # =====================================================
-    def mark_failed(
-        self,
-        key: str,
-        error_message: str
-    ):
+    def mark_failed(self, key: str, error_message: str):
         query = (
             update(idempotency_table)
             .where(idempotency_table.c.key == key)
@@ -111,7 +98,6 @@ class IdempotencyRepository:
                 status="failed",
                 error_message=error_message,
                 locked_at=None,
-              
             )
         )
         self.session.execute(query)
@@ -126,21 +112,17 @@ class IdempotencyRepository:
             idempotency_table.c.response_code,
             idempotency_table.c.response_body,
             idempotency_table.c.order_id,
-        ).where(
-            idempotency_table.c.key == key
-        )
+        ).where(idempotency_table.c.key == key)
 
-        result =  self.session.execute(query)
+        result = self.session.execute(query)
         return result.mappings().first()
 
     # =====================================================
     # 7. CHECK IF IN PROGRESS
     # =====================================================
     def is_processing(self, key: str) -> bool:
-        query = select(idempotency_table.c.status).where(
-            idempotency_table.c.key == key
-        )
-        result =  self.session.execute(query)
+        query = select(idempotency_table.c.status).where(idempotency_table.c.key == key)
+        result = self.session.execute(query)
         row = result.first()
 
         if not row:
@@ -157,7 +139,6 @@ class IdempotencyRepository:
             .where(idempotency_table.c.key == key)
             .values(
                 recovery_point=step,
-              
             )
         )
         self.session.execute(query)

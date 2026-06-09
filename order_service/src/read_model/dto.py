@@ -1,8 +1,7 @@
-
-
 from dataclasses import dataclass
 from typing import List, Dict, Any
 from datetime import datetime
+
 
 @dataclass
 class OrderItemView:
@@ -14,14 +13,13 @@ class OrderItemView:
     subtotal: float
 
 
-
 @dataclass
 class OrderView:
     order_id: str
     user_id: str
     status: str
-    version:int
-    item_count:int
+    version: int
+    item_count: int
     total_amount: int
     currency: str
     items: List[OrderItemView]

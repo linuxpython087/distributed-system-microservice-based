@@ -1,10 +1,11 @@
-
-
 from confluent_kafka.admin import AdminClient, NewTopic
 from confluent_kafka import KafkaException
 import sys
 
-def create_kafka_topic(bootstrap_servers, topic_name, num_partitions=1, replication_factor=1, config=None):
+
+def create_kafka_topic(
+    bootstrap_servers, topic_name, num_partitions=1, replication_factor=1, config=None
+):
     """
     Create a Kafka topic using Confluent's AdminClient.
 
@@ -23,17 +24,14 @@ def create_kafka_topic(bootstrap_servers, topic_name, num_partitions=1, replicat
         if topic_name in cluster_metadata.topics:
             print(f"Topic '{topic_name}' already exists.")
             return
-        
-
 
         # Create topic object
         new_topic = NewTopic(
             topic=topic_name,
             num_partitions=num_partitions,
             replication_factor=replication_factor,
-            config=config or {}
+            config=config or {},
         )
-
 
         # Send create request
         futures = admin_client.create_topics([new_topic])
@@ -53,8 +51,6 @@ def create_kafka_topic(bootstrap_servers, topic_name, num_partitions=1, replicat
         sys.exit(1)
 
 
-
-
 if __name__ == "__main__":
     # Example usage
     create_kafka_topic(
@@ -64,6 +60,6 @@ if __name__ == "__main__":
         replication_factor=1,
         config={
             "cleanup.policy": "delete",  # or "compact"
-            "retention.ms": "604800000"  # 7 days
-        }
+            "retention.ms": "604800000",  # 7 days
+        },
     )

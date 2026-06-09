@@ -1,6 +1,10 @@
 from dataclasses import dataclass
 
-from order_service.src.domain.value_objects.object_ids import IdempotencyId, OrderId, UserId
+from order_service.src.domain.value_objects.object_ids import (
+    IdempotencyId,
+    OrderId,
+    UserId,
+)
 
 
 @dataclass

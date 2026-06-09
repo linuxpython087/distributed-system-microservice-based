@@ -9,6 +9,7 @@ from order_service.src.domain.value_objects.object_ids import (
 )
 from order_service.src.domain.outbox_status import OutboxStatus
 
+
 @dataclass
 class OutboxMessage:
 

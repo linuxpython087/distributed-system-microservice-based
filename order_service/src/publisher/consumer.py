@@ -1,10 +1,12 @@
 from confluent_kafka import Consumer
 
-c = Consumer({
-    "bootstrap.servers": "kafka:9092",
-    "group.id": "test-group",
-    "auto.offset.reset": "earliest"
-})
+c = Consumer(
+    {
+        "bootstrap.servers": "kafka:9092",
+        "group.id": "test-group",
+        "auto.offset.reset": "earliest",
+    }
+)
 
 c.subscribe(["order_service_topics"])
 

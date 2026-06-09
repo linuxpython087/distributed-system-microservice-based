@@ -17,7 +17,6 @@ from order_service.src.domain.value_objects.object_ids import (
 )
 
 
-
 @dataclass(frozen=True, kw_only=True)
 class Event:
     event_id: EventId = field(default_factory=EventId.new)
@@ -72,10 +71,6 @@ class OrderConfirmedEvent(Event):
 class OrderCancelledEvent(Event):
     order_id: OrderId
     user_id: UserId
-
-
-
-
 
 
 @dataclass

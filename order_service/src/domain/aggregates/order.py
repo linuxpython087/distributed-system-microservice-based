@@ -86,7 +86,6 @@ class Order:
 
         self._record_event(OrderCancelledEvent(self.id, self.user_id))
 
-        
     def total(self) -> Money:
         items = list(self.items.values())
 

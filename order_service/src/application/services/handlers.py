@@ -13,6 +13,7 @@ from order_service.src.domain.exceptions import OrderNotFound
 
 from order_service.src.read_model.projection import OrderProjector
 
+
 class CommandHandler(Protocol):
     def handle(self, command, uow: AbstractOrderUnitOfWork):
         pass
@@ -81,7 +82,6 @@ class ChangeItemQuantityHandler:
             projector.project(order)
 
 
-
 class ConfirmOrderHandler:
     def handle(self, cmd: commands.ConfirmOrderCommand, uow: AbstractOrderUnitOfWork):
         with uow:
@@ -98,7 +98,6 @@ class ConfirmOrderHandler:
             projector.project(order)
 
 
-
 class CancelOrderHandler:
     def handle(self, cmd: commands.CancelOrderCommand, uow: AbstractOrderUnitOfWork):
         with uow:
@@ -113,4 +112,3 @@ class CancelOrderHandler:
             uow.commit()
             projector = OrderProjector(uow.session)
             projector.project(order)
-

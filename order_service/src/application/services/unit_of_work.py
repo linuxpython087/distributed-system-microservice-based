@@ -5,14 +5,22 @@ from order_service.src.infrastructure.repositories import SqlAlchemyOrderReposit
 from order_service.src.infrastructure.fake_repository import FakeOrderRepository
 
 from order_service.src.domain.idempotency.repository import (
-    AbstractIdempotencyRepository
+    AbstractIdempotencyRepository,
 )
-from order_service.src.infrastructure.idempotency.repository import IdempotencyRepository
-from order_service.src.infrastructure.outbox_message_repository import SqlalchemyOutboxMessageRepository
-from order_service.src.domain.outbox_message_repository import AbstractOutboxMessageRepository
+from order_service.src.infrastructure.idempotency.repository import (
+    IdempotencyRepository,
+)
+from order_service.src.infrastructure.outbox_message_repository import (
+    SqlalchemyOutboxMessageRepository,
+)
+from order_service.src.domain.outbox_message_repository import (
+    AbstractOutboxMessageRepository,
+)
 
 from order_service.src.domain.entities.outbox_message import OutboxMessage
-from order_service.src.domain.entities.evenet_builder import OrderIntegrationEventFactory
+from order_service.src.domain.entities.evenet_builder import (
+    OrderIntegrationEventFactory,
+)
 
 
 class AbstractOrderUnitOfWork(ABC):
@@ -96,7 +104,6 @@ class SqlAlchemyOrderUnitOfWork(AbstractOrderUnitOfWork):
     def rollback(self):
         self.session.rollback()
 
-
     def publish_events_to_outbox(self):
         for order in self.orders.seen:
 
@@ -107,8 +114,7 @@ class SqlAlchemyOrderUnitOfWork(AbstractOrderUnitOfWork):
 
                 # 2. build outbox message
                 outbox_message = OutboxMessage.from_integration_event(
-                    integration_event,
-                    aggregate_id=str(order.id)
+                    integration_event, aggregate_id=str(order.id)
                 )
 
                 # 3. persist

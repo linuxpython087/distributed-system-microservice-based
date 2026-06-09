@@ -6,7 +6,7 @@ from order_service.src.interfaces.api.dependencies import get_bus
 from order_service.src.interfaces.api.schemas.requests import (
     CreateOrderRequest,
     AddItemRequest,
-    ChangeQuantityRequest
+    ChangeQuantityRequest,
 )
 
 from order_service.src.interfaces.api.schemas.responses import (
@@ -31,7 +31,7 @@ from order_service.src.domain.value_objects.object_ids import OrderId, ProductId
 from order_service.src.domain.value_objects.money import Money
 
 from order_service.src.application.services.idempotency_service import (
-    IdempotencyService
+    IdempotencyService,
 )
 
 router = APIRouter()
@@ -42,13 +42,14 @@ from fastapi import Header
 from fastapi import Header, HTTPException
 import uuid
 
+
 @router.post(
     "/", response_model=CreateOrderResponse, status_code=status.HTTP_201_CREATED
 )
 def create_order(
     request: CreateOrderRequest,
     bus=Depends(get_bus),
-    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key")
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ):
     # =========================================
     # 1. AUTO-GENERATE IF MISSING
@@ -60,13 +61,11 @@ def create_order(
 
         service = IdempotencyService(bus.uow)
 
-    
-
         cmd = commands.CreateOrderCommand(user_id=UserId.from_string(request.user_id))
 
         def run():
             return bus.handle(cmd)
-        
+
         result = service.execute(
             key=idempotency_key,
             user_id=cmd.user_id,
@@ -75,13 +74,12 @@ def create_order(
             callback=run,
         )
 
-
-    # result = bus.handle(cmd)
+        # result = bus.handle(cmd)
 
         return CreateOrderResponse(
-        order_id=result["result"][0],
-        idempotency_key=idempotency_key,
-    )
+            order_id=result["result"][0],
+            idempotency_key=idempotency_key,
+        )
 
 
 @router.post(
@@ -101,19 +99,14 @@ def add_item(
         unit_price=Money(request.unit_price, "USD"),
     )
 
-    
     result = bus.handle(cmd)
 
-    return AddItemResponse(
-    item_id=str(result[0].value),
-    message="Item Added"
-)
+    return AddItemResponse(item_id=str(result[0].value), message="Item Added")
 
 
 @router.delete(
     "/{order_id}/items/{item_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-
 )
 def remove_item(
     order_id: str,
@@ -127,7 +120,7 @@ def remove_item(
 
     bus.handle(cmd)
 
-    return {"ùessage":"item removed"}
+    return {"ùessage": "item removed"}
 
 
 @router.patch(
@@ -173,8 +166,7 @@ def confirm_order(
 @router.post(
     "/{order_id}/cancel",
     status_code=status.HTTP_201_CREATED,
-    response_model=CancelOrderResponse
-
+    response_model=CancelOrderResponse,
 )
 def cancel_order(
     order_id: str,
@@ -187,6 +179,3 @@ def cancel_order(
     bus.handle(cmd)
 
     return CancelOrderResponse(message=f"Order: {order_id} Cancelled")
-
-
-

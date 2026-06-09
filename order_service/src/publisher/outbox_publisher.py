@@ -1,11 +1,11 @@
 import logging
 
 from order_service.src.infrastructure.outbox_message_repository import (
-    SqlalchemyOutboxMessageRepository
+    SqlalchemyOutboxMessageRepository,
 )
 
-
 logger = logging.getLogger(__name__)
+
 
 class OutboxPublisher:
 
@@ -24,10 +24,9 @@ class OutboxPublisher:
     def publish_pending_messages(self):
 
         messages = self.repository.claim_pending_messages(
-                limit=100,
-                worker_id=self.worker_id,
-            )
-        
+            limit=100,
+            worker_id=self.worker_id,
+        )
 
         for msg in messages:
 
@@ -46,17 +45,12 @@ class OutboxPublisher:
                     payload=payload,
                 )
 
-                self.repository.mark_published(
-                    msg.event_id
-                )
+                self.repository.mark_published(msg.event_id)
                 self.repository.session.commit()
 
             except Exception as e:
 
-                self.repository.mark_failed(
-                    msg.event_id,
-                    str(e)
-                )
+                self.repository.mark_failed(msg.event_id, str(e))
                 self.repository.session.commit()
 
         return len(messages)

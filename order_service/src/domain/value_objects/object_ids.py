@@ -21,9 +21,6 @@ class BaseId:
     @classmethod
     def new(cls):
         return cls(uuid.uuid4())
-    
-
-    
 
     def __hash__(self):
         return hash(self.value)

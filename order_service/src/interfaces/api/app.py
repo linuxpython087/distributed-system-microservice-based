@@ -63,4 +63,4 @@ async def handle_invalid_quantity(
 
 
 app.include_router(orders.router, prefix="/orders", tags=["Orders"])
-app.include_router(views.router, prefix="/orders", tags=["Read Orders"]) 
+app.include_router(views.router, prefix="/orders", tags=["Read Orders"])

@@ -1,5 +1,7 @@
-from order_service.src.domain.events.order_events import  OrderIntegrationEvent
+from order_service.src.domain.events.order_events import OrderIntegrationEvent
 from order_service.src.domain.value_objects.object_ids import EventId
+
+
 class OrderIntegrationEventFactory:
 
     @staticmethod
@@ -23,8 +25,7 @@ class OrderIntegrationEventFactory:
                         "subtotal": item.subtotal().amount,
                     }
                     for item in order.items.values()
-                ]
+                ],
             )
         else:
             return None
-    

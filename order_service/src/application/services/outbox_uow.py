@@ -1,15 +1,16 @@
 from typing import Protocol
-from order_service.src.domain.outbox_message_repository import AbstractOutboxMessageRepository
+from order_service.src.domain.outbox_message_repository import (
+    AbstractOutboxMessageRepository,
+)
+
 
 class AbstractUnitOfWork(Protocol):
 
     outbox_messages: AbstractOutboxMessageRepository
 
-    def commit(self) -> None:
-        ...
+    def commit(self) -> None: ...
 
-    def rollback(self) -> None:
-        ...
+    def rollback(self) -> None: ...
 
     def __enter__(self):
         return self
@@ -19,7 +20,10 @@ class AbstractUnitOfWork(Protocol):
 
 
 from order_service.src.infrastructure.database import SessionLocal
-from order_service.src.infrastructure.outbox_message_repository import SqlalchemyOutboxMessageRepository
+from order_service.src.infrastructure.outbox_message_repository import (
+    SqlalchemyOutboxMessageRepository,
+)
+
 
 class SqlAlchemyUnitOfWork:
 
@@ -30,9 +34,7 @@ class SqlAlchemyUnitOfWork:
     def __enter__(self):
         self.session = SessionLocal()
 
-        self.outbox_messages = SqlalchemyOutboxMessageRepository(
-            session=self.session
-        )
+        self.outbox_messages = SqlalchemyOutboxMessageRepository(session=self.session)
 
         return self
 
