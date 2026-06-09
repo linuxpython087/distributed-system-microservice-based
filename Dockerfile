@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
 
 
 # Copy only requirements first (for caching)
-COPY requirements.txt .
+COPY /order_service/requirements.txt .
 
 # Install dependencies into a separate folder
 RUN pip install --prefix=/install -r requirements.txt

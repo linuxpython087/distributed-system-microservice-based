@@ -1,15 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from order_service.src.infrastructure.config import Settings
+from order_service.src.infrastructure.config import settings
 
 from collections.abc import Generator
 from sqlalchemy.orm import Session
 
-def get_settings():
-    return Settings()
-
-settings = get_settings()
 DATABASE_URL = (
     f"postgresql://"
     f"{settings.database_user}:"
