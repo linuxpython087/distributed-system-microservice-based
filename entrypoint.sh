@@ -1,9 +1,12 @@
 #!/usr/bin/env sh
 set -e
 
-echo "Starting app (ENV=$APP_ENV)..."
+echo "Starting app (ENV=$APP_ENV)...."
 
 export PYTHONPATH=/app
+
+
+
 
 # echo "Waiting for database..."
 # until pg_isready -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_NAME; do 
