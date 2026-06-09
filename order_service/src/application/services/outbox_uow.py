@@ -2,6 +2,10 @@ from typing import Protocol
 from order_service.src.domain.outbox_message_repository import (
     AbstractOutboxMessageRepository,
 )
+from order_service.src.infrastructure.database import SessionLocal
+from order_service.src.infrastructure.outbox_message_repository import (
+    SqlalchemyOutboxMessageRepository,
+)
 
 
 class AbstractUnitOfWork(Protocol):
@@ -17,12 +21,6 @@ class AbstractUnitOfWork(Protocol):
 
     def __exit__(self, *args):
         self.rollback()
-
-
-from order_service.src.infrastructure.database import SessionLocal
-from order_service.src.infrastructure.outbox_message_repository import (
-    SqlalchemyOutboxMessageRepository,
-)
 
 
 class SqlAlchemyUnitOfWork:

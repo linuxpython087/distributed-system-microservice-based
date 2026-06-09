@@ -1,10 +1,5 @@
 import time
 
-from order_service.src.infrastructure.database import SessionLocal
-
-from order_service.src.infrastructure.outbox_message_repository import (
-    SqlalchemyOutboxMessageRepository,
-)
 
 from order_service.src.publisher.kafka_producer import KafkaEventProducer
 
@@ -12,14 +7,7 @@ from order_service.src.publisher.outbox_publisher import OutboxPublisher
 from order_service.src.infrastructure.mapper import start_mappers
 from order_service.src.application.services.outbox_uow import SqlAlchemyUnitOfWork
 
-
-import time
 import logging
-
-from order_service.src.infrastructure.mapper import start_mappers
-from order_service.src.publisher.kafka_producer import KafkaEventProducer
-from order_service.src.application.services.outbox_uow import SqlAlchemyUnitOfWork
-from order_service.src.publisher.outbox_publisher import OutboxPublisher
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

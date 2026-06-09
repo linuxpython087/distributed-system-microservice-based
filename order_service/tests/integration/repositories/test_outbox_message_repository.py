@@ -3,27 +3,17 @@ from order_service.src.infrastructure.outbox_message_repository import (
 )
 from order_service.src.domain.aggregates.order import Order
 from order_service.src.domain.value_objects.money import Money
-from order_service.src.domain.order_status import OrderStatus
-import pytest
-
 from order_service.src.domain.entities.outbox_message import OutboxMessage
-from order_service.src.domain.value_objects.object_ids import OutboxId
 
 from order_service.src.domain.value_objects.object_ids import (
     ProductId,
     UserId,
-    OutboxId,
-    EventId,
 )
 
-
-from order_service.src.domain.value_objects.money import Money
 from order_service.src.domain.entities.evenet_builder import (
     OrderIntegrationEventFactory,
 )
 from order_service.src.domain.outbox_status import OutboxStatus
-
-from order_service.src.domain.aggregates.order import Order
 
 
 def test_create_outbox_message_from_event_and_save_it_to_db(session):

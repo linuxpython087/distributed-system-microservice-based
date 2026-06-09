@@ -1,10 +1,8 @@
-from sqlalchemy import select, insert, update, func
+from sqlalchemy import select, update, func
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from order_service.src.infrastructure.orm import idempotency_table
-import uuid
-
 
 from order_service.src.domain.value_objects.object_ids import IdempotencyId
 

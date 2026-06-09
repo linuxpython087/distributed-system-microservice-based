@@ -1,24 +1,20 @@
 from fastapi import FastAPI
 
 from order_service.src.interfaces.api.routers import orders, views
-
-app = FastAPI(title="Order Service", version="1.0.0")
-
-
-from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 from order_service.src.domain.exceptions import (
     DomainException,
 )
 
-from fastapi.responses import JSONResponse
 
 from order_service.src.domain.exceptions import (
     OrderNotFound,
     InvalidOrderState,
     InvalidQuantity,
 )
+
+app = FastAPI(title="Order Service", version="1.0.0")
 
 
 @app.exception_handler(DomainException)

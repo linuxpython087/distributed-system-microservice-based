@@ -16,7 +16,6 @@ from order_service.src.application.services.unit_of_work import (
 
 
 from order_service.src.infrastructure.database import SessionLocal
-from order_service.src.infrastructure.database import get_db
 
 
 def bootstrap(

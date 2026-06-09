@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from fastapi import Depends, status
+from fastapi import Depends, status, Header
 
 from order_service.src.interfaces.api.dependencies import get_bus
 
@@ -12,7 +12,6 @@ from order_service.src.interfaces.api.schemas.requests import (
 from order_service.src.interfaces.api.schemas.responses import (
     CreateOrderResponse,
     AddItemResponse,
-    RemoveItemResponse,
     CancelOrderResponse,
     ChangeQuantityResponse,
     ConfirmOrderResponse,
@@ -25,22 +24,17 @@ from order_service.src.domain.value_objects.object_ids import (
     UserId,
     OrderId,
     OrderItemId,
+    ProductId,
 )
 
-from order_service.src.domain.value_objects.object_ids import OrderId, ProductId
 from order_service.src.domain.value_objects.money import Money
 
 from order_service.src.application.services.idempotency_service import (
     IdempotencyService,
 )
+import uuid
 
 router = APIRouter()
-
-
-from fastapi import Header
-
-from fastapi import Header, HTTPException
-import uuid
 
 
 @router.post(

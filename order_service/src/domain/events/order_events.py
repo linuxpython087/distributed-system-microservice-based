@@ -1,6 +1,6 @@
 # order_service/src/domain/events/order_events.py
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from order_service.src.domain.value_objects.object_ids import (
     OrderId,
@@ -9,8 +9,6 @@ from order_service.src.domain.value_objects.object_ids import (
     OrderItemId,
 )
 
-
-from dataclasses import dataclass, field
 
 from order_service.src.domain.value_objects.object_ids import (
     EventId,

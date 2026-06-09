@@ -1,6 +1,6 @@
 # domain/entities/outbox_message.py
 
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from datetime import datetime
 
 from order_service.src.domain.value_objects.object_ids import (

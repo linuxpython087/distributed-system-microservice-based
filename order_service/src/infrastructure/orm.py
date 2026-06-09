@@ -1,5 +1,5 @@
 from sqlalchemy import Table, Column, String, Integer, ForeignKey, DateTime, MetaData
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
 from sqlalchemy.sql.expression import text
 

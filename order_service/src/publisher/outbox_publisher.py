@@ -1,9 +1,5 @@
 import logging
 
-from order_service.src.infrastructure.outbox_message_repository import (
-    SqlalchemyOutboxMessageRepository,
-)
-
 logger = logging.getLogger(__name__)
 
 

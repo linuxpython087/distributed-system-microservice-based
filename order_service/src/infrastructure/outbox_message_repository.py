@@ -1,11 +1,9 @@
 from order_service.src.domain.entities.outbox_message import OutboxMessage
-from order_service.src.domain.value_objects.object_ids import OutboxId, EventId, OrderId
+from order_service.src.domain.value_objects.object_ids import OutboxId, EventId
 from sqlalchemy.orm import Session
 
 from order_service.src.domain.outbox_status import OutboxStatus
 from order_service.src.infrastructure.orm import (
-    orders_table,
-    order_items_table,
     outbox_messages_table,
 )
 from datetime import datetime
