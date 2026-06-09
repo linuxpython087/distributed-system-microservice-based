@@ -81,11 +81,11 @@ jobs:
 
       - name: drop database
         run: |
-          PGPASSWORD=${{ secrets.DATABASE_PASSWORD }} psql -h localhost -U ${{ secrets.DATABASE_USERNAME }} -c "DROP DATABASE IF EXISTS correction_test;"
+          PGPASSWORD=${{ secrets.DATABASE_PASSWORD }} psql -h localhost -U ${{ secrets.DATABASE_USERNAME }} -c "DROP DATABASE IF EXISTS distrbuted;"
 
       - name: Create test database
         run: |
-          PGPASSWORD=${{ secrets.DATABASE_PASSWORD }} psql -h localhost -U ${{ secrets.DATABASE_USERNAME }} -c "CREATE DATABASE correction_test;"
+          PGPASSWORD=${{ secrets.DATABASE_PASSWORD }} psql -h localhost -U ${{ secrets.DATABASE_USERNAME }} -c "CREATE DATABASE distributed;"
 
       - name: Run migrations with alembic
         run: alembic upgrade head
