@@ -80,7 +80,7 @@ class Order:
 
     def cancel(self):
         if self.status == OrderStatus.CANCELLED:
-            return
+            raise InvalidOrderState("Order already cancelled")
 
         self._change_status(OrderStatus.CANCELLED)
 

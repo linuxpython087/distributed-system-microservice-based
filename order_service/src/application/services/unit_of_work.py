@@ -103,11 +103,16 @@ class SqlAlchemyOrderUnitOfWork(AbstractOrderUnitOfWork):
             # 1. build integration event from ORDER (not raw event)
             integration_event = OrderIntegrationEventFactory.from_order(order)
 
-            # 2. build outbox message
-            outbox_message = OutboxMessage.from_integration_event(
-                integration_event,
-                aggregate_id=str(order.id)
-            )
+            if integration_event is not None:
 
-            # 3. persist
-            self.outbox.add(outbox_message)
+                # 2. build outbox message
+                outbox_message = OutboxMessage.from_integration_event(
+                    integration_event,
+                    aggregate_id=str(order.id)
+                )
+
+                # 3. persist
+                self.outbox.add(outbox_message)
+
+            else:
+                pass
