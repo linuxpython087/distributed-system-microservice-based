@@ -81,7 +81,7 @@ jobs:
 
       - name: drop database
         run: |
-          PGPASSWORD=${{ secrets.DATABASE_PASSWORD }} psql -h localhost -U ${{ secrets.DATABASE_USER }} -c "DROP DATABASE IF EXISTS distrbuted;"
+          PGPASSWORD=${{ secrets.DATABASE_PASSWORD }} psql -h localhost -U ${{ secrets.DATABASE_USER }} -c "DROP DATABASE IF EXISTS distributed;"
 
       - name: Create test database
         run: |
