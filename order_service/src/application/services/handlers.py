@@ -91,6 +91,7 @@ class ConfirmOrderHandler:
                 raise OrderNotFound("Order not found")
 
             order.confirm()
+            uow.publish_events_to_outbox()
 
             uow.commit()
             projector = OrderProjector(uow.session)
@@ -107,6 +108,7 @@ class CancelOrderHandler:
                 raise OrderNotFound("Order not found")
 
             order.cancel()
+            uow.publish_events_to_outbox()
 
             uow.commit()
             projector = OrderProjector(uow.session)

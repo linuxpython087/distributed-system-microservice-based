@@ -41,3 +41,11 @@ class OrderItemId(BaseId):
 
 class IdempotencyId(BaseId):
     pass
+
+
+class EventId(BaseId):
+    pass
+
+
+class OutboxId(BaseId):
+    pass

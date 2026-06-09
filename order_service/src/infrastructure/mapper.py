@@ -1,12 +1,13 @@
 from sqlalchemy.orm import registry, relationship
 
-from order_service.src.infrastructure.orm import orders_table, order_items_table
+from order_service.src.infrastructure.orm import orders_table, order_items_table, outbox_messages_table
 from sqlalchemy.orm import composite
 from order_service.src.domain.value_objects.money import Money
 from order_service.src.domain.aggregates.order import Order
 from order_service.src.domain.entities.order_item import OrderItem
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy import event
+from order_service.src.domain.entities.outbox_message import OutboxMessage
 
 # -------------------------
 # DOMAIN IMPORTS (for mapping layer)
@@ -55,6 +56,10 @@ def start_mappers():
         },
         version_id_col=orders_table.c.version,
         version_id_generator=False,
+    )
+
+    mapper_registry.map_imperatively(
+        OutboxMessage, outbox_messages_table
     )
 
     @event.listens_for(Order, "load")

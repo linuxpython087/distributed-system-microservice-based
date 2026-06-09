@@ -8,12 +8,15 @@ from order_service.src.domain.order_status import OrderStatus
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 
+from order_service.src.domain.outbox_status import OutboxStatus
 from order_service.src.domain.value_objects.object_ids import (
     OrderId,
     UserId,
     ProductId,
     OrderItemId,
-    IdempotencyId
+    IdempotencyId,
+    OutboxId,
+    EventId
 )
 
 
@@ -57,6 +60,16 @@ class OrderItemIdType(BaseUUIDType):
     vo_class = OrderItemId
 
 
+class OutboxIdType(BaseUUIDType):
+    vo_class = OutboxId
+    cache_ok = True
+
+class EventIdType(BaseUUIDType):
+    vo_class = EventId
+    cache_ok = True
+
+
+
 class OrderStatusType(TypeDecorator):
     impl = String
     cache_ok = True
@@ -70,6 +83,26 @@ class OrderStatusType(TypeDecorator):
         if value is None:
             return None
         return OrderStatus(value)  # str -> Enum
+
+
+
+# =========================================================
+# OUTBOX STATUS TYPE
+# =========================================================
+
+class OutboxStatusType(TypeDecorator):
+    impl = String
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
+        return value.value  # Enum -> str
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return None
+        return OutboxStatus(value)  # str -> Enum
 
 
 # -------------------------
@@ -160,7 +193,7 @@ order_read_model_table = Table(
     Column("status", String, nullable=False),
     Column("item_count", Integer, nullable=False, default=0),
 
-    Column("total_amount", Integer, nullable=False, default=0, server_default=")"),
+    Column("total_amount", Integer, nullable=False, default=0, server_default="0"),
     Column("currency", String, nullable=False, default="USD"),
 
     # snapshot complet des items
@@ -170,4 +203,53 @@ order_read_model_table = Table(
 
     Column("created_at", DateTime(timezone=True), server_default=func.now()),
     Column("updated_at", DateTime(timezone=True), onupdate=func.now()),
+)
+
+
+
+
+outbox_messages_table = Table(
+    "outbox_messages",
+    metadata,
+
+    # Identity
+    Column("id", OutboxIdType(), primary_key=True),
+
+    # Event identity (idempotence downstream)
+    Column("event_id", EventIdType(), nullable=False, unique=True),
+
+    # Aggregate reference (Order, Payment, etc.)
+    Column("aggregate_id", String, nullable=False),
+
+    # Optional strong link to order
+    Column("order_id", OrderIdType(), ForeignKey("orders.id"), nullable=True),
+
+    # Event metadata
+    Column("event_type", String, nullable=False),
+
+    # Event payload (DDD integration event snapshot)
+    Column("payload", JSONB, nullable=False),
+
+    # Processing state
+    Column("status", OutboxStatusType(), nullable=False, server_default="PENDING"),
+    # PENDING | PUBLISHED | FAILED | RETRYING
+
+    # Retry strategy
+    Column("retry_count", Integer, nullable=False, server_default="0"),
+    Column("max_retries", Integer, nullable=False, server_default="5"),
+
+    # Concurrency / locking (multi-worker safe)
+    Column("locked_at", DateTime(timezone=True), nullable=True),
+    Column("locked_by", String, nullable=True),
+
+    # Lifecycle timestamps
+    Column("created_at", DateTime(timezone=True), server_default=func.now()),
+    Column("published_at", DateTime(timezone=True), nullable=True),
+    Column("failed_at", DateTime(timezone=True), nullable=True),
+
+    # Debugging / observability
+    Column("last_error", String, nullable=True),
+
+    #  ordering guarantee per aggregate
+    Column("sequence_number", Integer, nullable=True),
 )
