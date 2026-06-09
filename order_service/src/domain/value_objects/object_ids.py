@@ -21,6 +21,15 @@ class BaseId:
     @classmethod
     def new(cls):
         return cls(uuid.uuid4())
+    
+
+    
+
+    def __hash__(self):
+        return hash(self.value)
+
+    def __lt__(self, other):
+        return self.value < other.value  # IMPORTANT
 
 
 class UserId(BaseId):

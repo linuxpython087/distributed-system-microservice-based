@@ -43,6 +43,9 @@ echo "Running migrations (alembic)..."
 
 cd /app/order_service && alembic upgrade head
 
+echo "Creating kafka topics..."
+
+
 echo "Starting FastAPI..."
 
 exec uvicorn order_service.src.interfaces.api.app:app \
