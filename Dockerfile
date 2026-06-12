@@ -41,7 +41,12 @@ ENV PYTHONUNBUFFERED=1
 ENV APP_ENV=${APP_ENV}
 
 # Create non-root user
-RUN useradd -m appuser
+# RUN useradd -m appuser
+
+RUN groupadd -g 10001 appuser && \
+    useradd -u 10001 -g 10001 -m -s /bin/bash appuser
+
+
 
 WORKDIR /app
 
@@ -49,18 +54,22 @@ WORKDIR /app
 COPY --from=builder /install /usr/local
 
 # Copy app code
-COPY . .
+COPY order_service /app/order_service
 
-#  Add entrypoint script
 COPY entrypoint.sh /entrypoint.sh
 
 #  Permissions (script must be executable)
+# RUN chmod +x /entrypoint.sh && \
+#     chown -R appuser:appuser /app
+
 RUN chmod +x /entrypoint.sh && \
-    chown -R appuser:appuser /app
+    chown -R 10001:10001 /app && \
+    chown 10001:10001 /entrypoint.sh
 
 
 
-USER appuser
+# USER appuser
+USER 10001:10001
 
 EXPOSE 8000
 

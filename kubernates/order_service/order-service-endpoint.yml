@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: order-service-endpoint
+  namespace: order-service
+
+spec:
+  selector:
+    app.kubernetes.io/name: order-service-api
+
+  ports:
+    - port: 90
+      targetPort: 8000
+
+  type: ClusterIP

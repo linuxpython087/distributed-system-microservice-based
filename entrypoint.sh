@@ -8,14 +8,14 @@ export PYTHONPATH=/app
 
 
 
-# echo "Waiting for database..."
-# until pg_isready -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_NAME; do 
-# sleep 2
-# done
+echo "Waiting for database..."
+until pg_isready -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_NAME; do 
+sleep 2
+done
 
-# echo "Running migrations (alembic)..."
+echo "Running migrations (alembic)..."
 
-# cd /app/order_service && alembic upgrade head
+cd /app/order_service && alembic upgrade head
 
 echo "Creating kafka topics..."
 

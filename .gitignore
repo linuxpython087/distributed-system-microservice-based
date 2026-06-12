@@ -9,4 +9,6 @@ wheels/
 # Virtual environments
 .venv
 .env
+kubernates/order_service/order-service-secrets.yml
+kubernates/order_service/dockerhub-secret.yaml
 
