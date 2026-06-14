@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-service-configmap
+  namespace: messaging
+
+data:
+  DATABASE_HOST: postgres.order-service.svc.cluster.local
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: distributed
+  DATABASE_USER: postgres

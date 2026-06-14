@@ -11,4 +11,6 @@ wheels/
 .env
 kubernates/order_service/order-service-secrets.yml
 kubernates/order_service/dockerhub-secret.yaml
+kubernates/kafka/order-service-secrets.yml
+kubernates/kafka/dockerhub-secret.yaml
 

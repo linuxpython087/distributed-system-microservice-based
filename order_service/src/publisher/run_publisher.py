@@ -17,7 +17,11 @@ def main():
 
     start_mappers()
 
-    producer = KafkaEventProducer(bootstrap_servers="kafka:9092")
+    import os
+
+    bootstrap = os.getenv("KAFKA_BOOTSTRAP", "kafka.messaging.svc.cluster.local:9092")
+
+    producer = KafkaEventProducer(bootstrap_servers=bootstrap)
 
     while True:
 
