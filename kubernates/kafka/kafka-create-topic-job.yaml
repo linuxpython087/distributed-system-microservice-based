@@ -9,7 +9,7 @@ spec:
     spec:
       restartPolicy: Never
 
-      # 🔥 THIS IS THE FIX (same as Deployment)
+      
       imagePullSecrets:
         - name: dockerhub-secret
 
