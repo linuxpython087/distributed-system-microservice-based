@@ -19,7 +19,7 @@ spec:
     spec:
       terminationGracePeriodSeconds: 30
 
-      # 🔥 FIX: SAME AS YOUR API DEPLOYMENT
+   
       imagePullSecrets:
         - name: dockerhub-secret
 
