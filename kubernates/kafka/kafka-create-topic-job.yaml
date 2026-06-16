@@ -15,7 +15,7 @@ spec:
 
       containers:
         - name: create-topic
-          image: tchalimcanonical/order-service:v3.0.1
+          image: tchalimcanonical/order-service:v3.0.2
 
           command: ["python"]
           args:
