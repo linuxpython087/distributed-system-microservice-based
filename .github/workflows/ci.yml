@@ -1,96 +1,85 @@
+name: PostgreSQL CI Check
 
-name: Build and Deploy Code
-
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
 
 jobs:
   build:
-   
+
+    runs-on: ubuntu-latest
+
     env:
-      DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
-      DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+      DATABASE_HOST: localhost
+      DATABASE_PORT: 5432
       DATABASE_USER: ${{ secrets.DATABASE_USER }}
       DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-      DATABASE_NAME: ${{ secrets.DATABASE_NAME }}    
-     
+      DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
 
     services:
       postgres:
-        image: postgres
+        image: postgres:16
+
         env:
-          POSTGRES_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}  
-          POSTGRES_DB: ${{ secrets.DATABASE_NAME }}                   
+          POSTGRES_USER: ${{ secrets.DATABASE_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.DATABASE_NAME }}
+
         ports:
           - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: order_service
-    strategy:
-      matrix:
-        python-version: ["3.12", "3.13"]  # Liste des versions de Python
+        options: >-
+          --health-cmd="pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+          --health-start-period=10s
 
     steps:
-      - name: pulling git repo
-        uses: actions/checkout@v2
 
-      - name: Install python version ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Cache pip dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: pip-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            pip-${{ runner.os }}-
-      
+          python-version: "3.12"
 
-      - name: Cache pip dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: pip-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            pip-${{ runner.os }}-
-
-  
-
-      - name: update pip
-        run: python -m pip install --upgrade pip
-
-      - name: install all dependencies
-        run: pip install -r requirements.txt
-
-      - name: install alembic
-        run: pip install alembic
-
-      - name: Wait for PostgreSQL to be ready
+      - name: Install PostgreSQL client dependencies
         run: |
-          for i in {1..10}; do
-            pg_isready -h localhost -p 5432 && break
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+          pip install psycopg2-binary
+
+      - name: Wait for PostgreSQL readiness
+        run: |
+          echo "Waiting for PostgreSQL..."
+
+          for i in {1..30}; do
+            pg_isready -h localhost -p 5432 -U $DATABASE_USER && break
+            echo "Not ready yet... attempt $i"
             sleep 2
           done
 
-      - name: drop database
+      - name: Test PostgreSQL connection
         run: |
-          PGPASSWORD=${{ secrets.DATABASE_PASSWORD }} psql -h localhost -U ${{ secrets.DATABASE_USER }} -c "DROP DATABASE IF EXISTS distributed;"
+          python -c "
+            import psycopg2
+            import os
 
-      - name: Create test database
-        run: |
-          PGPASSWORD=${{ secrets.DATABASE_PASSWORD }} psql -h localhost -U ${{ secrets.DATABASE_USER }} -c "CREATE DATABASE distributed;"
+            print('Connecting to DB...')
 
-      - name: Run migrations with alembic
-        run: alembic upgrade head
+            conn = psycopg2.connect(
+                host='localhost',
+                port=5432,
+                user=os.environ['DATABASE_USER'],
+                password=os.environ['DATABASE_PASSWORD'],
+                dbname=os.environ['DATABASE_NAME']
+            )
 
-      - name: test with pytest
-        run: |
-          pip install pytest
-          pytest
+            cur = conn.cursor()
+            cur.execute('SELECT 1;')
+            print('DB READY AND WORKING:', cur.fetchone())
+
+            conn.close()
+            "

@@ -1,0 +1,87 @@
+namespace:
+  name: order-service
+
+app:
+  name: order-service-api
+
+
+
+image:
+
+  repository: tchalimcanonical/order-service
+
+  tag: v3.0.2
+
+  pullPolicy: Always
+
+
+replicaCount: 3
+
+
+service:
+
+  type: ClusterIP
+
+  port: 90
+
+  targetPort: 8000
+  name: order-service-endpoint
+
+
+resources:
+
+  requests:
+
+    cpu: 500m
+
+    memory: 256Mi
+
+  limits:
+
+    cpu: 2000m
+
+    memory: 512Mi
+
+
+
+ingress:
+
+  enabled: true
+
+  host: order.local
+
+
+config:
+
+  APP_NAME: order-service
+
+  APP_ENV: production
+
+  LOG_LEVEL: INFO
+
+  KAFKA_BOOTSTRAP: kafka:9092
+
+  DB_HOST: postgres
+
+  DB_PORT: "5432"
+
+
+secret:
+
+  DATABASE_URL: ""
+
+  SECRET_KEY: ""
+
+
+monitoring:
+
+  enabled: true
+
+  path: /metrics
+
+
+imagePullSecret:
+
+  enabled: true
+
+  name: dockerhub-secret

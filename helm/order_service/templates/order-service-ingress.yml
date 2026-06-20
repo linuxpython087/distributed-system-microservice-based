@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+metadata:
+  name: order-service-ingress
+  namespace: order-service
+
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+
+spec:
+
+  ingressClassName: nginx
+
+  rules:
+
+  - host: api.order.local
+
+    http:
+
+      paths:
+
+      - path: /
+        pathType: Prefix
+
+        backend:
+          service:
+            name: order-service-endpoint
+
+            port:
+              number: 90

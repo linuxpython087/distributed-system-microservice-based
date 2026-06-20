@@ -1,0 +1,123 @@
+loki:
+
+  auth_enabled: false
+
+  commonConfig:
+
+    replication_factor: 1
+
+  storage:
+
+    type: filesystem
+
+  schemaConfig:
+
+    configs:
+
+      - from: 2025-01-01
+
+        store: tsdb
+
+        object_store: filesystem
+
+        schema: v13
+
+        index:
+
+          prefix: loki_index_
+
+          period: 24h
+
+
+deploymentMode: SingleBinary
+
+singleBinary:
+  replicas: 1
+
+read:
+  replicas: 0
+
+write:
+  replicas: 0
+
+backend:
+  replicas: 0
+
+
+gateway:
+  enabled: true
+
+
+monitoring:
+
+  dashboards:
+    enabled: true
+
+  serviceMonitor:
+    enabled: true
+
+
+promtail:
+
+  enabled: true
+
+  serviceMonitor:
+    enabled: true
+
+  config:
+
+    logLevel: info
+
+    clients:
+
+      - url: http://loki-gateway/loki/api/v1/push
+
+    snippets:
+
+      pipelineStages:
+
+        - cri: {}
+
+        - json:
+
+            expressions:
+
+              service: service
+              level: level
+              environment: environment
+              event: event
+              method: method
+              path: path
+              duration_ms: duration_ms
+              status_code: status_code
+              correlation_id: correlation_id
+
+        - labels:
+
+            service:
+            level:
+            environment:
+            method:
+            status_code:
+
+      common:
+
+        - action: replace
+          source_labels:
+            - __meta_kubernetes_namespace
+          target_label: namespace
+
+        - action: replace
+          source_labels:
+            - __meta_kubernetes_pod_name
+          target_label: pod
+
+        - action: replace
+          source_labels:
+            - __meta_kubernetes_pod_container_name
+          target_label: container
+
+        - action: replace
+          source_labels:
+            - __meta_kubernetes_pod_label_app_kubernetes_io_name
+          target_label: app

@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+  namespace: messaging
+
+spec:
+  serviceName: kafka-headless
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: kafka
+
+  template:
+    metadata:
+      labels:
+        app: kafka
+
+    spec:
+      # 🔥 FIX: permission issue for Kafka data directory
+      initContainers:
+        - name: fix-permissions
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - chown -R 1000:1000 /var/lib/kafka/data
+          volumeMounts:
+            - name: kafka-data
+              mountPath: /var/lib/kafka/data
+
+      containers:
+        - name: kafka
+          image: confluentinc/cp-kafka:7.8.3
+
+          ports:
+            - containerPort: 9092
+            - containerPort: 9093
+
+          envFrom:
+            - configMapRef:
+                name: kafka-config
+
+          volumeMounts:
+            - name: kafka-data
+              mountPath: /var/lib/kafka/data
+
+  volumeClaimTemplates:
+    - metadata:
+        name: kafka-data
+
+      spec:
+        accessModes:
+          - ReadWriteOnce
+
+        resources:
+          requests:
+            storage: 10Gi

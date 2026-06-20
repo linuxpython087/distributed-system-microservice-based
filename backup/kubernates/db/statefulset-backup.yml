@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: Job
+
+metadata:
+  name: postgres-backup
+  namespace: order-service
+
+spec:
+  template:
+    spec:
+
+      restartPolicy: Never
+
+      containers:
+      - name: postgres-backup
+
+        image: postgres:17
+
+        env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: order-service-secrets
+              key: DATABASE_PASSWORD
+
+        command:
+        - /bin/bash
+        - -c
+        - |
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+
+          pg_dump \
+            -h postgres \
+            -U postgres \
+            -d distributed \
+            > /backup/postgres-${TIMESTAMP}.sql
+
+          echo "Backup completed"
+
+        volumeMounts:
+        - name: backup-storage
+          mountPath: /backup
+
+      volumes:
+      - name: backup-storage
+        persistentVolumeClaim:
+          claimName: postgres-backup-pvc

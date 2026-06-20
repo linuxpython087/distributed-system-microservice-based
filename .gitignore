@@ -14,3 +14,9 @@ kubernates/order_service/dockerhub-secret.yaml
 kubernates/kafka/order-service-secrets.yml
 kubernates/kafka/dockerhub-secret.yaml
 
+backup/kubernates/kafka/dockerhub-secret.yaml
+backup/kubernates/kafka/order-service-secrets.yml
+helm/order_service/secrets/secret-values.yaml
+helm/order_service/templates/order-service-secrets.yml
+backup/kubernates/order_service/order-service-secrets.yml
+backup/kubernates/order_service/dockerhub-secret.yaml

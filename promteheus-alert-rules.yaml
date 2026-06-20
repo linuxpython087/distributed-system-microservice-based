@@ -1,0 +1,161 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: order-service-alerts
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  groups:
+    - name: order-service.rules
+      rules:
+
+        # ----------------------------
+        # 1. LATENCE P95
+        # ----------------------------
+        - alert: HighP95Latency
+          expr: |
+            histogram_quantile(
+              0.95,
+              sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+            ) > 0.5
+          for: 5m
+          labels:
+            severity: warning
+            service: order-service-endpoint
+          annotations:
+            summary: "Latence P95 élevée"
+            description: "La latence p95 dépasse 500ms depuis 5 minutes"
+
+        # ----------------------------
+        # 2. LATENCE P99 (plus strict)
+        # ----------------------------
+        - alert: HighP99Latency
+          expr: |
+            histogram_quantile(
+              0.99,
+              sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+            ) > 1
+          for: 5m
+          labels:
+            severity: critical
+            service: order-service-endpoint
+          annotations:
+            summary: "Latence P99 critique"
+            description: "La latence p99 dépasse 1 seconde"
+
+        # ----------------------------
+        # 3. TAUX D'ERREUR HTTP
+        # ----------------------------
+        - alert: HighErrorRate
+          expr: |
+            (
+              sum(rate(http_requests_total{status=~"5.."}[5m]))
+              /
+              sum(rate(http_requests_total[5m]))
+            ) > 0.05
+          for: 5m
+          labels:
+            severity: critical
+            service: order-service-endpoint
+          annotations:
+            summary: "Taux d'erreur élevé"
+            description: "Plus de 5% des requêtes échouent"
+
+        # ----------------------------
+        # 4. CPU ÉLEVÉ (namespace)
+        # ----------------------------
+        - alert: HighCPUUsage
+          expr: |
+            sum(rate(container_cpu_usage_seconds_total[5m])) by (namespace)
+            > 0.8
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "CPU élevé"
+            description: "Utilisation CPU élevée dans le namespace"
+
+        # ----------------------------
+        # 5. MEMOIRE ÉLEVÉE
+        # ----------------------------
+        - alert: HighMemoryUsage
+          expr: |
+            sum(container_memory_working_set_bytes) by (namespace)
+            > 500000000
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Mémoire élevée"
+            description: "Consommation mémoire élevée (>500MB)"
+
+        # ----------------------------
+        # 6. PODS DOWN
+        # ----------------------------
+        - alert: TooFewPods
+          expr: |
+            count(kube_pod_info{namespace="order-service"}) < 2
+          for: 2m
+          labels:
+            severity: critical
+            service: order-service-endpoint
+          annotations:
+            summary: "Pods insuffisants"
+            description: "Le nombre de pods est inférieur à 2"
+
+        # ----------------------------
+        # 7. RESTARTS FRÉQUENTS
+        # ----------------------------
+        - alert: HighPodRestartRate
+          expr: |
+            increase(kube_pod_container_status_restarts_total[10m]) > 3
+          for: 5m
+          labels:
+            severity: warning
+            service: order-service-endpoint
+          annotations:
+            summary: "Redémarrages fréquents"
+            description: "Un pod redémarre trop souvent"
+
+        # ----------------------------
+        # 8. POD NON READY
+        # ----------------------------
+        - alert: PodNotReady
+          expr: |
+            kube_pod_status_ready{condition="false",namespace="order-service"} == 1
+          for: 5m
+          labels:
+            severity: critical
+            service: order-service-endpoint
+          annotations:
+            summary: "Pod non ready"
+            description: "Un pod reste en état non-ready"
+
+        # ----------------------------
+        # 9. REQUEST RATE TROP BAS (service down partiel)
+        # ----------------------------
+        - alert: LowRequestRate
+          expr: |
+            sum(rate(http_requests_total[5m])) < 1
+          for: 10m
+          labels:
+            severity: warning
+            service: order-service-endpoint
+          annotations:
+            summary: "Traffic très faible"
+            description: "Le service reçoit très peu de trafic"
+
+        # ----------------------------
+        # 10. REQUEST RATE TROP ÉLEVÉ (surcharge)
+        # ----------------------------
+        - alert: HighRequestRate
+          expr: |
+            sum(rate(http_requests_total[5m])) > 100
+          for: 5m
+          labels:
+            severity: warning
+            service: order-service-endpoint
+          annotations:
+            summary: "Surcharge trafic"
+            description: "Trop de requêtes en entrée"

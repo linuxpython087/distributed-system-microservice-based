@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: order-service
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:17
+
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: order-service-configmap
+              key: DATABASE_NAME
+
+        - name: POSTGRES_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: order-service-configmap
+              key: DATABASE_PORT
+
+        - name: POSTGRES_USER
+          valueFrom:
+            configMapKeyRef:
+              name: order-service-configmap
+              key: DATABASE_USER
+
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: order-service-secrets
+              key: DATABASE_PASSWORD
+
+        ports:
+        - containerPort: 5432
+
+        volumeMounts:
+        - name: pgdata
+          mountPath: /var/lib/postgresql/data
+
+  volumeClaimTemplates:
+  - metadata:
+      name: pgdata
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 5Gi

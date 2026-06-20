@@ -1,0 +1,47 @@
+grafana:
+
+  enabled: true
+
+  adminPassword: admin
+
+  service:
+    type: NodePort
+
+  persistence:
+    enabled: true
+    size: 5Gi
+
+  additionalDataSources:
+
+    - name: Loki
+
+      type: loki
+
+      access: proxy
+
+      url: http://loki-gateway.monitoring.svc.cluster.local
+
+prometheus:
+
+  service:
+    type: NodePort
+
+prometheusSpec:
+
+  retention: 15d
+
+  scrapeInterval: 15s
+
+  evaluationInterval: 15s
+
+  serviceMonitorSelectorNilUsesHelmValues: false
+
+alertmanager:
+
+  enabled: true
+
+nodeExporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true

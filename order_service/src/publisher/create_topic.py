@@ -53,9 +53,8 @@ def create_kafka_topic(
 
 if __name__ == "__main__":
     import os
-
-    bootstrap = os.getenv("KAFKA_BOOTSTRAP", "kafka.messaging.svc.cluster.local:9092")
     # Example usage
+    bootstrap = os.getenv("KAFKA_BOOTSTRAP", "kafka.messaging.svc.cluster.local:9092")
     create_kafka_topic(
         bootstrap_servers=bootstrap,
         topic_name="order_service_topics",

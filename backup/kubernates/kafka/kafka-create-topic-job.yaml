@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kafka-create-topic
+  namespace: messaging
+
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+
+      
+      imagePullSecrets:
+        - name: dockerhub-secret
+
+      containers:
+        - name: create-topic
+          image: tchalimcanonical/order-service:v3.0.2
+
+          command: ["python"]
+          args:
+            - "-m"
+            - "order_service.src.publisher.create_topic"
