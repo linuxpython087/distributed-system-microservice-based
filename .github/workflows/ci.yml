@@ -10,6 +10,9 @@ jobs:
   unit-tests:
 
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
 
     env:
       DATABASE_HOST: localhost
@@ -29,7 +32,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
         run: |
@@ -176,13 +179,13 @@ jobs:
             sleep 2
           done
 
-      # - name: Run repository integration tests
-      #   run: |
-      #     pytest tests/integration/repositories/
+      - name: Run repository integration tests
+        run: |
+          pytest tests/integration/repositories/
 
-      # - name: Run service integration tests
-      #   run: |
-      #     pytest tests/integration/
+      - name: Run service integration tests
+        run: |
+          pytest tests/integration/
 
       - name: Run API tests
         run: |
