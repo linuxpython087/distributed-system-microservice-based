@@ -202,8 +202,16 @@ jobs:
           pytest tests/api/
 
   
+  quality-gate:
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, api-tests]
+    steps:
+      - run: echo "All tests passed → ready to build"
+  
   build:
     runs-on: ubuntu-latest
+    needs: quality-gate
+    
 
     steps:
     # 1. Checkout code
