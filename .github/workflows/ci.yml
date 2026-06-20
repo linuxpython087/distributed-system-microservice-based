@@ -228,8 +228,9 @@ jobs:
       with:
         images: ${{ secrets.DOCKERHUB_USERNAME }}/order-service
         tags: |
-          
-          type=v3.0.3
+          type=sha
+          type=ref,event=branch
+          type=raw,value=latest
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v4
