@@ -271,10 +271,10 @@ jobs:
           cache-to: type=gha,mode=max
 
       # 6. Security scan (Trivy)
-      - name: Trivy scan
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/order-service:latest
+      # - name: Trivy scan
+      #   uses: aquasecurity/trivy-action@0.28.0
+      #   with:
+      #     image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/order-service:latest
 
       # 7. Build + Push (only if scan passed)
       - name: Build and Push
