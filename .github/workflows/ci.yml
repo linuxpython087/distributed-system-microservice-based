@@ -1,4 +1,4 @@
-name: Order Service CI - Unit Tests
+name: Order Service CI - Tests
 
 on:
   push:
@@ -65,20 +65,8 @@ jobs:
             sleep 2
           done
 
-      - name: Run unit tests
+      - name: Run all tests(unit tests, integration tests, api)
         run: |
-          pytest tests/unit_tests/
+          pytest tests/
 
-      - name: Run integration tests repo
-        run: |
-          pytest tests/integration/repositories/
-
-
-      - name: Run integration tests integration 
-        run: |
-          pytest tests/integration/
       
-
-      - name: Run integration tests api
-        run: |
-          pytest tests/api/
