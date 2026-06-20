@@ -230,49 +230,59 @@ jobs:
   build:
     runs-on: ubuntu-latest
     needs: quality-gate
-    
 
     steps:
-    # 1. Checkout code
-    - name: Checkout code
-      uses: actions/checkout@v4
 
-    # 2. Setup Docker Buildx
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      # 1. Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    # 3. Login to Docker Hub
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # 2. Setup Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    # 4. Extract metadata (FIXED)
-    - name: Extract metadata (tags)
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ secrets.DOCKERHUB_USERNAME }}/order-service
-        tags: |
-          type=sha
-          type=ref,event=branch
-          type=raw,value=latest
+      # 3. Login to Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v4
+      # 4. Extract metadata (tags)
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/order-service
+          tags: |
+            type=sha
+            type=ref,event=branch
+            type=raw,value=latest
 
-    # 5. buildx
-    - name: Buildx
-      uses: docker/setup-buildx-action@v4
-    
+      # 5. Build image (NO PUSH YET)
+      - name: Build image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: false
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-    # 5. Build & Push image
-    - name: Build and Push
-      uses: docker/build-push-action@v7
-      with:
-        context: .
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
+      # 6. Security scan (Trivy)
+      - name: Trivy scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/order-service:latest
 
+      # 7. Build + Push (only if scan passed)
+      - name: Build and Push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
