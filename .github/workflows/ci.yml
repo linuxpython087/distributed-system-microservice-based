@@ -1,13 +1,17 @@
-name: PostgreSQL CI Check
+name: Order Service CI - Unit Tests
 
 on:
   push:
   pull_request:
 
 jobs:
-  build:
+  unit-tests:
 
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: order_service
 
     env:
       DATABASE_HOST: localhost
@@ -47,8 +51,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
           pip install psycopg2-binary
 
       - name: Wait for PostgreSQL readiness
@@ -57,28 +61,10 @@ jobs:
 
           for i in {1..30}; do
             pg_isready -h localhost -p 5432 -U $DATABASE_USER && break
-            echo "Not ready yet... attempt $i"
+            echo "DB not ready yet... attempt $i"
             sleep 2
           done
 
-      - name: Test PostgreSQL connection
+      - name: Run unit tests
         run: |
-          python -c "import psycopg2, os
-
-          print('Connecting to DB...')
-
-          conn = psycopg2.connect(
-              host='localhost',
-              port=5432,
-              user=os.environ['DATABASE_USER'],
-              password=os.environ['DATABASE_PASSWORD'],
-              dbname=os.environ['DATABASE_NAME']
-          )
-
-          cur = conn.cursor()
-          cur.execute('SELECT 1;')
-
-          print('DB READY AND WORKING:', cur.fetchone())
-
-          conn.close()
-          "
+          pytest tests/unit_tests/
