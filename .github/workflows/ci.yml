@@ -45,7 +45,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install PostgreSQL client dependencies
+      - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
@@ -63,23 +63,22 @@ jobs:
 
       - name: Test PostgreSQL connection
         run: |
-          python -c "
-            import psycopg2
-            import os
+          python -c "import psycopg2, os
 
-            print('Connecting to DB...')
+          print('Connecting to DB...')
 
-            conn = psycopg2.connect(
-                host='localhost',
-                port=5432,
-                user=os.environ['DATABASE_USER'],
-                password=os.environ['DATABASE_PASSWORD'],
-                dbname=os.environ['DATABASE_NAME']
-            )
+          conn = psycopg2.connect(
+              host='localhost',
+              port=5432,
+              user=os.environ['DATABASE_USER'],
+              password=os.environ['DATABASE_PASSWORD'],
+              dbname=os.environ['DATABASE_NAME']
+          )
 
-            cur = conn.cursor()
-            cur.execute('SELECT 1;')
-            print('DB READY AND WORKING:', cur.fetchone())
+          cur = conn.cursor()
+          cur.execute('SELECT 1;')
 
-            conn.close()
-            "
+          print('DB READY AND WORKING:', cur.fetchone())
+
+          conn.close()
+          "
