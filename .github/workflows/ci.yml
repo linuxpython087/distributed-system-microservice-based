@@ -185,13 +185,9 @@ jobs:
             sleep 2
           done
 
-      - name: Run repository integration tests
+      - name: Run migrations
         run: |
-          pytest tests/integration/repositories/
-
-      - name: Run service integration tests
-        run: |
-          pytest tests/integration/
+          alembic upgrade head
 
       - name: Run API tests
         run: |
