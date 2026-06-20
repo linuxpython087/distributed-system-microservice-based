@@ -1,11 +1,13 @@
-name: Order Service CI - Tests
+name: Order Service CI -  Tests
 
 on:
   push:
   pull_request:
 
 jobs:
-  unit-tests:
+
+  # ============================================ CI =================================
+  CI-tests:
 
     runs-on: ubuntu-latest
 
@@ -65,8 +67,20 @@ jobs:
             sleep 2
           done
 
-      - name: Run all tests(unit tests, integration tests, api)
+      - name: Run unit tests
         run: |
-          pytest tests/
+          pytest tests/unit_tests/
 
+      - name: Run integration tests repo
+        run: |
+          pytest tests/integration/repositories/
+
+
+      - name: Run integration tests integration 
+        run: |
+          pytest tests/integration/
       
+
+      - name: Run integration tests api
+        run: |
+          pytest tests/api/
