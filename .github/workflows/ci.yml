@@ -109,67 +109,71 @@ jobs:
         run: |
           pytest tests/integration/
 
-
-  # ========================= API TESTS =========================
-  api-tests:
-
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: order_service
-
-    env:
-      DATABASE_HOST: localhost
-      DATABASE_PORT: 5432
-      DATABASE_USER: ${{ secrets.DATABASE_USER }}
-      DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-      DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
-
-    services:
-      postgres:
-        image: postgres:17
-
-        env:
-          POSTGRES_USER: ${{ secrets.DATABASE_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.DATABASE_NAME }}
-
-        ports:
-          - 5432:5432
-
-        options: >-
-          --health-cmd="pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=20
-          --health-start-period=10s
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install psycopg2-binary
-
-      - name: Wait for PostgreSQL readiness
-        run: |
-          echo "Waiting for PostgreSQL..."
-
-          for i in {1..30}; do
-            pg_isready -h localhost -p 5432 -U $DATABASE_USER && break
-            echo "DB not ready yet... attempt $i"
-            sleep 2
-          done
-
       - name: Run API tests
         run: |
           pytest tests/api/
+
+
+  # # ========================= API TESTS =========================
+  # api-tests:
+
+  #   runs-on: ubuntu-latest
+
+  #   defaults:
+  #     run:
+  #       working-directory: order_service
+
+  #   env:
+  #     DATABASE_HOST: localhost
+  #     DATABASE_PORT: 5432
+  #     DATABASE_USER: ${{ secrets.DATABASE_USER }}
+  #     DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+  #     DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+
+  #   services:
+  #     postgres:
+  #       image: postgres:17
+
+  #       env:
+  #         POSTGRES_USER: ${{ secrets.DATABASE_USER }}
+  #         POSTGRES_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+  #         POSTGRES_DB: ${{ secrets.DATABASE_NAME }}
+
+  #       ports:
+  #         - 5432:5432
+
+  #       options: >-
+  #         --health-cmd="pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"
+  #         --health-interval=5s
+  #         --health-timeout=5s
+  #         --health-retries=20
+  #         --health-start-period=10s
+
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+
+  #     - name: Setup Python
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: "3.12"
+
+  #     - name: Install dependencies
+  #       run: |
+  #         python -m pip install --upgrade pip
+  #         pip install -r requirements.txt
+  #         pip install psycopg2-binary
+
+  #     - name: Wait for PostgreSQL readiness
+  #       run: |
+  #         echo "Waiting for PostgreSQL..."
+
+  #         for i in {1..30}; do
+  #           pg_isready -h localhost -p 5432 -U $DATABASE_USER && break
+  #           echo "DB not ready yet... attempt $i"
+  #           sleep 2
+  #         done
+
+  #     - name: Run API tests
+  #       run: |
+  #         pytest tests/api/
