@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: kafka-order-service-configmap
-  namespace: {{ .Values.namespace.app }}
+  namespace: messaging
 
 data:
   DATABASE_HOST: {{ .Values.postgres.host | quote }}
