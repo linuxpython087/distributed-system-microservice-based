@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-service-configmap
+  namespace: {{ .Values.namespace.app }}
+
+data:
+  DATABASE_HOST: {{ .Values.postgres.host | quote }}
+  DATABASE_PORT: {{ .Values.postgres.port | quote }}
+  DATABASE_NAME: {{ .Values.postgres.name | quote }}
+  DATABASE_USER: {{ .Values.postgres.user | quote }}

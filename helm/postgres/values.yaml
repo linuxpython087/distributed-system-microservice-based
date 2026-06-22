@@ -1,8 +1,6 @@
 namespace:
 
-  app: order-service
-
-
+  app: database
 
 app:
   name: order-service-api
@@ -87,10 +85,3 @@ secret:
   DATABASE_PASSWORD: ""
   DOCKER_HUB_USERNAME: ""
   DOCKER_HUB_PASSWORD: ""
-
-
-postgres:
-  host: postgres.database.svc.cluster.local
-  port: "5432"
-  name: distributed
-  user: postgres

@@ -1,8 +1,6 @@
 namespace:
 
-  app: order-service
-
-
+  app: messaging
 
 app:
   name: order-service-api

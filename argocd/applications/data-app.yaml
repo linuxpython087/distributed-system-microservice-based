@@ -1,0 +1,32 @@
+# argocd/order-service-staging.yaml
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: order-service-staging-db
+  namespace: argocd
+
+spec:
+
+  project: default
+
+  source:
+    repoURL: https://github.com/linuxpython087/distributed-system-microservice-based.git
+
+    targetRevision: HEAD
+
+    path: helm/postgres
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: datbase
+
+  syncPolicy:
+
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
