@@ -5,7 +5,7 @@ metadata:
   namespace: messaging
 
 data:
-  DATABASE_HOST: {{ .Values.postgres.host | quote }}
-  DATABASE_PORT: {{ .Values.postgres.port | quote }}
-  DATABASE_NAME: {{ .Values.postgres.name | quote }}
-  DATABASE_USER: {{ .Values.postgres.user | quote }}
+  DATABASE_HOST: "postgres.database.svc.cluster.local"
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: distributed
+  DATABASE_USER: postgres

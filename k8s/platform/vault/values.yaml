@@ -1,0 +1,21 @@
+server:
+  dev:
+    enabled: false
+
+  standalone:
+    enabled: true
+
+  dataStorage:
+    enabled: true
+    size: 10Gi
+
+  service:
+    enabled: true
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+injector:
+  enabled: true
