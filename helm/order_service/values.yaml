@@ -18,7 +18,7 @@ image:
   pullPolicy: Always
 
 
-replicaCount: 3
+replicaCount: 5
 
 
 service:
