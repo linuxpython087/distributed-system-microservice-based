@@ -16,7 +16,7 @@ spec:
 
     targetRevision: HEAD
 
-    path: helm/order-service
+    path: helm/order_service
 
   destination:
     server: https://kubernetes.default.svc
