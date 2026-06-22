@@ -4,7 +4,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 
 metadata:
-  name: order-service-staging-api
+  name: order-service-api
   namespace: argocd
 
 spec:
@@ -16,7 +16,7 @@ spec:
 
     targetRevision: HEAD
 
-    path: kubernates/order-service
+    path: helm/order-service
 
   destination:
     server: https://kubernetes.default.svc
