@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+  name: kafka-release
+
+data:
+  install.sh: |
+    helm upgrade \
+      --install kafka \
+      helm/kafka \
+      -n messaging

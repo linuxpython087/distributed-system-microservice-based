@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+  name: order-service-release
+
+data:
+  install.sh: |
+    helm upgrade \
+      --install order-service \
+      helm/order_service \
+      -n order-service

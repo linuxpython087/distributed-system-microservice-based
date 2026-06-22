@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+  name: postgres-release
+
+data:
+  install.sh: |
+    helm upgrade \
+      --install postgres \
+      helm/postgres \
+      -n database
