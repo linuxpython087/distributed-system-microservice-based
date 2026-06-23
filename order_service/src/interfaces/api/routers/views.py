@@ -16,7 +16,7 @@ tracer = trace.get_tracer(__name__)
 @router.get("/orders/{order_id}")
 def get_order(order_id: str, session=Depends(get_db)):
 
-    with tracer.start_as_current_span("create_order_usecase") as span:
+    with tracer.start_as_current_span("get-order") as span:
         span.set_attribute("order.customer_id", order_id)
 
         repo = OrderReadRepository(session)

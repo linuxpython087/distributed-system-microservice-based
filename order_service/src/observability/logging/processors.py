@@ -5,6 +5,40 @@ SERVICE_NAME = "order-service"
 ENVIRONMENT = os.getenv("ENVIRONMENT", "dev")
 
 
+from opentelemetry.trace import (
+    get_current_span
+)
+
+def inject_trace(
+    logger,
+    method,
+    event
+):
+
+    span = get_current_span()
+
+    ctx = span.get_span_context()
+
+    if ctx.is_valid:
+
+        event["trace_id"] = (
+            format(
+                ctx.trace_id,
+                "032x"
+            )
+        )
+
+        event["span_id"] = (
+            format(
+                ctx.span_id,
+                "016x"
+            )
+        )
+
+    return event
+
+
+
 def add_service_context(_, __, event_dict):
 
     event_dict["service"] = SERVICE_NAME

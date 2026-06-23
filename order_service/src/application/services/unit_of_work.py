@@ -23,6 +23,15 @@ from order_service.src.domain.entities.evenet_builder import (
 )
 
 
+from opentelemetry import trace
+from opentelemetry.trace.status import (
+    Status,
+    StatusCode
+)
+
+tracer = trace.get_tracer(__name__)
+
+
 class AbstractOrderUnitOfWork(ABC):
 
     orders: OrderRepository
@@ -83,11 +92,13 @@ class SqlAlchemyOrderUnitOfWork(AbstractOrderUnitOfWork):
         self.session_factory = session_factory
 
     def __enter__(self):
-        self.session = self.session_factory()
-        self.orders = SqlAlchemyOrderRepository(self.session)
-        self.idempotency = IdempotencyRepository(self.session)
-        self.outbox = SqlalchemyOutboxMessageRepository(self.session)
-        return self
+        with tracer.start_as_current_span("uow.begin"):
+
+            self.session = self.session_factory()
+            self.orders = SqlAlchemyOrderRepository(self.session)
+            self.idempotency = IdempotencyRepository(self.session)
+            self.outbox = SqlalchemyOutboxMessageRepository(self.session)
+            return self
 
     def __exit__(self, exc_type, exc, tb):
         try:
@@ -99,26 +110,92 @@ class SqlAlchemyOrderUnitOfWork(AbstractOrderUnitOfWork):
             self.session.close()
 
     def commit(self):
-        self.session.commit()
+        with tracer.start_as_current_span(
+        "uow.commit"
+    ) as span:
+            try:
+                self.session.commit()
+            
+                span.set_attribute(
+                "transaction.status",
+                "committed"
+            )
 
-    def rollback(self):
-        self.session.rollback()
+            except Exception as e:
 
-    def publish_events_to_outbox(self):
-        for order in self.orders.seen:
+                span.record_exception(e)
 
-            # 1. build integration event from ORDER (not raw event)
-            integration_event = OrderIntegrationEventFactory.from_order(order)
-
-            if integration_event is not None:
-
-                # 2. build outbox message
-                outbox_message = OutboxMessage.from_integration_event(
-                    integration_event, aggregate_id=str(order.id)
+                span.set_status(
+                    Status(
+                        StatusCode.ERROR
+                    )
                 )
 
-                # 3. persist
-                self.outbox.add(outbox_message)
+                raise
 
-            else:
-                pass
+
+    def rollback(self):
+
+        with tracer.start_as_current_span(
+            "uow.rollback"
+        ):
+
+            self.session.rollback()
+
+
+    def publish_events_to_outbox(self):
+
+        with tracer.start_as_current_span(
+            "outbox.collect"
+        ) as span:
+
+            count = 0
+
+            for order in self.orders.seen:
+
+                integration_event = (
+                    OrderIntegrationEventFactory
+                    .from_order(order)
+                )
+
+                if integration_event:
+
+                    outbox_message = (
+                        OutboxMessage
+                        .from_integration_event(
+                            integration_event,
+                            aggregate_id=str(order.id),
+                        )
+                    )
+
+                    self.outbox.add(
+                        outbox_message
+                    )
+
+                    count += 1
+
+            span.set_attribute(
+                "outbox.messages",
+                count
+            )
+
+
+
+    # def publish_events_to_outbox(self):
+    #     for order in self.orders.seen:
+
+    #         # 1. build integration event from ORDER (not raw event)
+    #         integration_event = OrderIntegrationEventFactory.from_order(order)
+
+    #         if integration_event is not None:
+
+    #             # 2. build outbox message
+    #             outbox_message = OutboxMessage.from_integration_event(
+    #                 integration_event, aggregate_id=str(order.id)
+    #             )
+
+    #             # 3. persist
+    #             self.outbox.add(outbox_message)
+
+    #         else:
+    #             pass

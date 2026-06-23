@@ -3,6 +3,8 @@ import structlog
 from order_service.src.observability.logging.processors import (
     add_service_context,
     add_exception,
+inject_trace,
+
 )
 
 
@@ -13,6 +15,9 @@ def configure_logging():
             add_service_context,
             structlog.contextvars.merge_contextvars,
             add_exception,
+
+            inject_trace,
+
             structlog.processors.add_log_level,
             structlog.processors.TimeStamper(fmt="iso"),
             structlog.processors.JSONRenderer(),
