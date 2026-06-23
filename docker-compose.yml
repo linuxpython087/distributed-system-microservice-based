@@ -149,7 +149,48 @@ services:
     networks:
       - appnet
 
-      
+  tempo:
+    image: grafana/tempo:2.5.0
+    container_name: tempo
+
+    command:
+      - -config.file=/etc/tempo.yaml
+
+    volumes:
+      - ./order_service/src/observability/trace/tempo.yaml:/etc/tempo.yaml
+
+    ports:
+      - "3200:3200"
+      - "4317:4317"
+
+    networks:
+      - appnet
+
+
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.102.1
+    container_name: otel-collector
+
+    command:
+      - --config=/etc/otelcol/config.yaml
+
+    volumes:
+      - ./order_service/src/observability/otel/config.yaml:/etc/otelcol/config.yaml
+
+    ports:
+      - "4318:4318"
+      - "4319:4317"
+
+    depends_on:
+      - tempo
+
+    networks:
+      - appnet
+
+
+  
+  
 networks:
   appnet:
     driver: bridge

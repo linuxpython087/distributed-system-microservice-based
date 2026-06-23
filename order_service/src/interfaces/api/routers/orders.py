@@ -33,6 +33,10 @@ from order_service.src.application.services.idempotency_service import (
     IdempotencyService,
 )
 import uuid
+from opentelemetry import trace
+
+tracer = trace.get_tracer(__name__)
+
 
 from order_service.src.domain.exceptions import (
     DomainException,
@@ -45,9 +49,15 @@ logger = structlog.get_logger()
 
 router = APIRouter()
 
+from opentelemetry import trace
+
+tracer = trace.get_tracer(__name__)
+
 
 @router.post(
-    "/", response_model=CreateOrderResponse, status_code=status.HTTP_201_CREATED
+    "/",
+    response_model=CreateOrderResponse,
+    status_code=status.HTTP_201_CREATED,
 )
 def create_order(
     request: CreateOrderRequest,
@@ -56,57 +66,107 @@ def create_order(
 ):
     try:
 
-        # =========================================
-        # 1. AUTO-GENERATE IF MISSING
-        # =========================================
-        if not idempotency_key:
-            idempotency_key = str(uuid.uuid4())
+        with tracer.start_as_current_span("create_order") as span:
 
-        with bus.uow:
+            if not idempotency_key:
+                idempotency_key = str(uuid.uuid4())
 
-            service = IdempotencyService(bus.uow)
+            span.set_attribute("user.id", request.user_id)
+            span.set_attribute("idempotency.key", idempotency_key)
 
-            cmd = commands.CreateOrderCommand(
-                user_id=UserId.from_string(request.user_id)
-            )
+            with bus.uow:
 
-            def run():
-                return bus.handle(cmd)
+                service = IdempotencyService(bus.uow)
 
-            logger.info(
-                "create_order_started",
-                user_id=str(cmd.user_id),
-                idempotency_key=idempotency_key,
-            )
-            result = service.execute(
-                key=idempotency_key,
-                user_id=cmd.user_id,
-                request_path="/orders",
-                request_params=cmd.to_dict(),
-                callback=run,
-            )
+                cmd = commands.CreateOrderCommand(
+                    user_id=UserId.from_string(request.user_id)
+                )
 
-            # result = bus.handle(cmd)
-            logger.info(
-                "order_created",
-                order_id=str(result["result"][0]),
-                user_id=str(cmd.user_id),
-                idempotency_key=idempotency_key,
-            )
+                span.set_attribute(
+                    "command.type",
+                    "CreateOrderCommand"
+                )
 
-            return CreateOrderResponse(
-                order_id=result["result"][0],
-                idempotency_key=idempotency_key,
-            )
+                logger.info(
+                    "create_order_started",
+                    user_id=str(cmd.user_id),
+                    idempotency_key=idempotency_key,
+                )
+
+                def run():
+
+                    with tracer.start_as_current_span(
+                        "command_bus.handle"
+                    ) as child_span:
+
+                        child_span.set_attribute(
+                            "command",
+                            "CreateOrderCommand"
+                        )
+
+                        return bus.handle(cmd)
+
+                result = service.execute(
+                    key=idempotency_key,
+                    user_id=cmd.user_id,
+                    request_path="/orders",
+                    request_params=cmd.to_dict(),
+                    callback=run,
+                )
+
+                order_id = str(result["result"][0])
+
+                span.set_attribute(
+                    "order.id",
+                    order_id
+                )
+
+                logger.info(
+                    "order_created",
+                    order_id=order_id,
+                    user_id=str(cmd.user_id),
+                    idempotency_key=idempotency_key,
+                )
+
+                return CreateOrderResponse(
+                    order_id=result["result"][0],
+                    idempotency_key=idempotency_key,
+                )
+
     except DomainException as d:
-        logger.warning(
-            "create_order_business_failed", error=str(d), user_id=request.user_id
+
+        current_span = trace.get_current_span()
+
+        current_span.record_exception(d)
+        current_span.set_attribute(
+            "error.type",
+            "DomainException"
         )
-        raise
-    except Exception as e:
-        logger.exception("create_order_failed", error=str(e))
+
+        logger.warning(
+            "create_order_business_failed",
+            error=str(d),
+            user_id=request.user_id,
+        )
+
         raise
 
+    except Exception as e:
+
+        current_span = trace.get_current_span()
+
+        current_span.record_exception(e)
+        current_span.set_attribute(
+            "error.type",
+            type(e).__name__
+        )
+
+        logger.exception(
+            "create_order_failed",
+            error=str(e),
+        )
+
+        raise
 
 @router.post(
     "/{order_id}/items",

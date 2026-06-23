@@ -23,8 +23,11 @@ from order_service.src.observability.metrics.middlewares import (
 )
 from order_service.src.observability.logging.config import configure_logging
 
+from order_service.src.observability.tracing.setup import setup_tracing
+
 from prometheus_client import generate_latest
 from fastapi import Response
+
 
 logger = structlog.get_logger()
 
@@ -81,6 +84,7 @@ class HealthService:
 @app.on_event("startup")
 def startup_event():
     configure_logging()
+    setup_tracing(app) 
 
     try:
 
