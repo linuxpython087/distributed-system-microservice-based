@@ -11,10 +11,3 @@ services:
       - IPC_LOCK
     command: server -dev
 
-    volumes:
-      - vault-data:/vault/file
-
-
-
-volumes:
-  vault-data:

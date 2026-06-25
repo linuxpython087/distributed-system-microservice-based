@@ -1,0 +1,12 @@
+server:
+  dataStorage:
+    enabled: true
+    size: 10Gi
+
+  securityContext:
+    runAsUser: 100
+    runAsGroup: 1000
+    fsGroup: 1000
+
+  extraEnvironmentVars:
+    SKIP_CHOWN: "false"
