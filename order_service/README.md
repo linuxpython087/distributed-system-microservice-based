@@ -496,3 +496,462 @@ You now have:
 * Add log correlation (trace_id linking)
 
 ```
+
+
+# Traces part 
+
+
+## 🏗 Architecture
+
+```text
++------------------+
+|  Order Service   |
+|  (FastAPI)       |
++---------+--------+
+          |
+          | OTLP gRPC / HTTP
+          ▼
++--------------------------+
+| OpenTelemetry Collector  |
+| (Deployment)             |
++------------+-------------+
+             |
+             | OTLP Exporter
+             ▼
++--------------------------+
+| Grafana Tempo            |
+| Trace Storage Backend    |
++------------+-------------+
+             |
+             ▼
++--------------------------+
+| Grafana                  |
+| Trace Visualization      |
++--------------------------+
+```
+
+---
+
+## 🚀 Prerequisites
+
+Before deployment, ensure the following components are available:
+
+* Kubernetes Cluster
+* Helm v3+
+* kubectl
+* ArgoCD
+* Grafana 
+
+---
+
+# 📦 Grafana Tempo Deployment
+
+## Add Grafana Helm Repository
+
+```bash
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+```
+
+---
+
+## Install Tempo
+
+```bash
+helm install tempo grafana/tempo \
+  -n monitoring \
+  --create-namespace
+```
+
+---
+
+
+# 📦 OpenTelemetry Collector Deployment
+
+## Add Helm Repository
+
+```bash
+helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+helm repo update
+```
+
+---
+
+## Install OpenTelemetry Collector
+
+```bash
+helm install my-opentelemetry-collector \
+  open-telemetry/opentelemetry-collector \
+  --set image.repository="otel/opentelemetry-collector-k8s" \
+  --set mode=deployment \
+  -n monitoring \
+  --create-namespace
+```
+
+---
+
+## Collector Configuration
+
+Create a `values.yaml` file:
+
+```yaml
+mode: deployment
+
+image:
+  repository: otel/opentelemetry-collector-k8s
+  tag: ""
+
+config:
+  receivers:
+    otlp:
+      protocols:
+        grpc: {}
+        http: {}
+
+  processors:
+    batch: {}
+
+  exporters:
+    otlp:
+      endpoint: tempo.monitoring.svc.cluster.local:4317
+      tls:
+        insecure: true
+
+  service:
+    pipelines:
+      traces:
+        receivers:
+          - otlp
+
+        processors:
+          - batch
+
+        exporters:
+          - otlp
+```
+
+---
+
+## Upgrade Collector Configuration
+
+Whenever configuration changes are made:
+
+```bash
+helm upgrade my-opentelemetry-collector \
+  open-telemetry/opentelemetry-collector \
+  -f values.yaml \
+  -n monitoring
+```
+
+---
+
+
+## Verify Deployment
+
+```bash
+kubectl get pods -n monitoring
+
+kubectl get svc -n monitoring
+```
+
+Expected services:
+
+* tempo
+* my-opentelemetry-collector
+
+---
+
+# 🔗 Application Integration
+
+## Python OpenTelemetry Configuration
+
+Example implementation for a FastAPI service:
+
+```python
+from opentelemetry import trace
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
+    OTLPSpanExporter
+)
+
+from opentelemetry.instrumentation.fastapi import (
+    FastAPIInstrumentor
+)
+
+from opentelemetry.instrumentation.sqlalchemy import (
+    SQLAlchemyInstrumentor
+)
+
+from order_service.src.infrastructure.database import engine
+
+
+def setup_tracing(app):
+
+    resource = Resource.create({
+        "service.name": "order-service"
+    })
+
+    provider = TracerProvider(resource=resource)
+    trace.set_tracer_provider(provider)
+
+    exporter = OTLPSpanExporter(
+        endpoint=(
+            "my-opentelemetry-collector-opentelemetry-collector"
+            ".monitoring.svc.cluster.local:4317"
+        ),
+        insecure=True
+    )
+
+    provider.add_span_processor(
+        BatchSpanProcessor(exporter)
+    )
+
+    FastAPIInstrumentor.instrument_app(app)
+
+    SQLAlchemyInstrumentor().instrument(
+        engine=engine
+    )
+```
+
+---
+
+# 🔄 GitOps Workflow with ArgoCD
+
+## Deployment Flow
+
+```text
+Developer
+    │
+    ▼
+Git Repository
+    │
+    ▼
+ArgoCD
+    │
+    ▼
+Kubernetes Cluster
+    │
+    ├── Tempo
+    ├── OpenTelemetry Collector
+    └── Application Services
+```
+
+---
+
+## Workflow
+
+1. Update Helm values
+2. Commit changes to Git
+3. Push to remote repository
+4. ArgoCD detects changes
+5. Synchronization starts
+6. Kubernetes resources are updated
+7. New observability configuration becomes active
+
+---
+
+## Manual Synchronization
+
+```bash
+argocd app sync observability-stack
+```
+
+---
+
+# 🧪 Validation
+
+## Verify Collector Logs
+
+```bash
+kubectl logs \
+  -l app=my-opentelemetry-collector \
+  -n monitoring
+```
+
+---
+
+## Verify Tempo Logs
+
+```bash
+kubectl logs deployment/tempo \
+  -n monitoring
+```
+
+---
+
+## Generate Test Traces
+
+```bash
+curl http://<order-service>/ready
+```
+
+or
+
+```bash
+curl http://<order-service>/health
+```
+
+Then inspect traces in Grafana Tempo.
+
+---
+
+# 🔍 Troubleshooting
+
+## Collector Cannot Reach Tempo
+
+Verify Tempo endpoint:
+
+```bash
+kubectl get svc -n monitoring
+```
+
+Check DNS resolution:
+
+```bash
+kubectl exec -it <collector-pod> -n monitoring -- nslookup tempo
+```
+
+---
+
+## No Traces Appearing
+
+Verify:
+
+* Application instrumentation enabled
+* Collector receiving traces
+* OTLP exporter configuration
+* Tempo service availability
+* Network policies
+
+---
+
+## Collector Pod Status
+
+```bash
+kubectl describe pod <collector-pod> -n monitoring
+```
+
+
+# 🧠 Key Concepts
+
+## OpenTelemetry Collector
+
+Acts as the central telemetry pipeline.
+
+Responsibilities:
+
+* Receive telemetry data
+* Process telemetry data
+* Export telemetry data
+
+Pipeline:
+
+```text
+Receiver → Processor → Exporter
+```
+
+---
+
+## Tempo
+
+Distributed tracing backend responsible for:
+
+* Receiving OTLP traces
+* Storing trace data
+* Serving traces to Grafana
+
+Default OTLP gRPC Port:
+
+```text
+4317
+```
+
+---
+
+## Deployment Mode
+
+Using:
+
+```yaml
+mode: deployment
+```
+
+Benefits:
+
+* Centralized architecture
+* Easier GitOps management
+* Horizontal scalability
+* Production-ready operation
+
+---
+
+## ArgoCD
+
+Acts as the single source of truth.
+
+Benefits:
+
+* Declarative infrastructure
+* Automatic synchronization
+* Rollback support
+* Auditability
+* Reproducibility
+
+---
+
+# 📈 Production Enhancements
+
+Recommended next steps:
+
+### Metrics
+
+* Prometheus
+* kube-state-metrics
+* Node Exporter
+
+### Logs
+
+* Grafana Loki
+* Promtail
+
+### Correlation
+
+* Trace ↔ Logs correlation
+* Trace ↔ Metrics correlation
+
+### OpenTelemetry Optimization
+
+* Tail-based sampling
+* Head-based sampling
+* Resource attributes
+* Service discovery
+
+### Multi-Environment
+
+* Development
+* Staging
+* Production
+
+### High Availability
+
+* Tempo Distributed
+* Multi-replica Collector
+* Persistent Storage
+
+---
+
+# ✅ Result
+
+This setup provides:
+
+* Distributed tracing
+* Centralized telemetry collection
+* GitOps-driven deployments
+* Kubernetes-native observability
+* Production-ready architecture
+* End-to-end service visibility
+
+---
