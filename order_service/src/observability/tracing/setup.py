@@ -28,9 +28,14 @@ def setup_tracing(app):
     )
 
     exporter = OTLPSpanExporter(
-        endpoint="otel-collector:4317",
-        insecure=True
-    )
+    endpoint="my-otel-collector-opentelemetry-collector.monitoring.svc.cluster.local:4317",
+    insecure=True
+)
+
+    # exporter = OTLPSpanExporter(
+    #     endpoint="otel-collector:4317",
+    #     insecure=True
+    # )
 
     provider.add_span_processor(
         BatchSpanProcessor(
