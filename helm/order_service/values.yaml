@@ -13,8 +13,7 @@ image:
 
   repository: tchalimcanonical/order-service
 
-  # tag: sha-405a105
-  tag: v3.0.3
+  tag: sha-405a105
 
   pullPolicy: Always
 

@@ -286,3 +286,13 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      
+      - name: Update Helm image tag
+        run: |
+            NEW_TAG=sha-${GITHUB_SHA::7}
+
+            sed -i "s/tag:.*/tag: ${NEW_TAG}/" helm/order_service/values.yaml
+
+            cat helm/order_service/values.yaml | grep tag
+
+        
